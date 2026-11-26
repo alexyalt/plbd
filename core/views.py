@@ -62,7 +62,7 @@ def dashboard(request):
     ctx = {
         "counts": [
             ("Осмотры", Inspection.objects.count()),
-            ("В работе", Inspection.objects.filter(in_work=True, done=False).count()),
+            ("Не выполнено", Inspection.objects.filter(done=False).count()),
             ("Обработки", Treatment.objects.count()),
             ("Не списано (строк)", TreatmentReagent.objects.filter(written_off=False).count()),
             ("Растения", Plant.objects.count()),
@@ -374,6 +374,65 @@ def duplicates(request):
     for g in groups:
         g.sort(key=lambda p: -p.n)
     return render(request, "core/duplicates.html", {"groups": groups})
+
+
+def _period_filters(g):
+    from django.utils.dateparse import parse_date
+    return parse_date(g.get("date_from", "")), parse_date(g.get("date_to", "")), g.get("location"), g.get("plant")
+
+
+def _xlsx(data, name):
+    resp = HttpResponse(data, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    resp["Content-Disposition"] = f'attachment; filename="{name}"'
+    return resp
+
+
+def reports_page(request):
+    return render(request, "core/reports.html", {
+        "locations": Location.objects.all(), "plants": Plant.objects.all()})
+
+
+def report_inspections(request):
+    d1, d2, loc, plant = _period_filters(request.GET)
+    qs = Inspection.objects.select_related("location", "place", "plant").order_by("date", "legacy_id")
+    if d1:
+        qs = qs.filter(date__gte=d1)
+    if d2:
+        qs = qs.filter(date__lte=d2)
+    if loc:
+        qs = qs.filter(location_id=loc)
+    if plant:
+        qs = qs.filter(plant_id=plant)
+    if request.GET.get("open"):
+        qs = qs.filter(done=False)
+    return _xlsx(reports.inspection_act_xlsx(qs), "inspection_act.xlsx")
+
+
+def _reagent_qs(g):
+    d1, d2, loc, plant = _period_filters(g)
+    qs = (TreatmentReagent.objects.select_related("treatment__location", "treatment__plant", "treatment__person",
+                                                  "treatment__inspection", "preparation")
+          .order_by("treatment__date", "treatment_id", "id"))
+    if d1:
+        qs = qs.filter(treatment__date__gte=d1)
+    if d2:
+        qs = qs.filter(treatment__date__lte=d2)
+    if loc:
+        qs = qs.filter(treatment__location_id=loc)
+    if plant:
+        qs = qs.filter(treatment__plant_id=plant)
+    return qs
+
+
+def report_journal(request):
+    return _xlsx(reports.journal_xlsx(_reagent_qs(request.GET)), "work_book.xlsx")
+
+
+def report_treatments(request):
+    _, _, loc, plant = _period_filters(request.GET)
+    return _xlsx(reports.treatment_report_xlsx(Location.objects.filter(pk=loc).first() if loc else None,
+                                               Plant.objects.filter(pk=plant).first() if plant else None,
+                                               _reagent_qs(request.GET)), "treatments.xlsx")
 
 
 def tools(request):

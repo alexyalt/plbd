@@ -1,0 +1,17 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Отчёты (Excel по шаблонам)</h1>
+<form class="card filters" method="get" id="rep" style="padding:14px">
+  <div><label>С даты</label><input type="date" name="date_from"></div>
+  <div><label>По дату</label><input type="date" name="date_to"></div>
+  <div><label>Объект</label><select name="location"><option value="">все</option>{% for l in locations %}<option value="{{ l.pk }}">{{ l }}</option>{% endfor %}</select></div>
+  <div><label>Растение</label><select name="plant"><option value="">все</option>{% for p in plants %}<option value="{{ p.pk }}">{{ p }}</option>{% endfor %}</select></div>
+  <div><label><input type="checkbox" name="open" value="1"> только невыполненные осмотры</label></div>
+</form>
+<p>
+  <button class="btn" type="submit" form="rep" formaction="{% url 'report_inspections' %}">Акт осмотра</button>
+  <button class="btn" type="submit" form="rep" formaction="{% url 'report_treatments' %}">Справка по обработкам</button>
+  <button class="btn" type="submit" form="rep" formaction="{% url 'report_journal' %}">Журнал обработок</button>
+</p>
+<p class="muted">Фильтры «с даты/по дату», «объект», «растение» применяются ко всем трём отчётам; «только невыполненные» — только к акту осмотра. Справка по списанию препарата находится в разделе «Списание ТМЦ». Без фильтров отчёты содержат всю историю (тысячи строк).</p>
+{% endblock %}

@@ -168,3 +168,47 @@ class ImporterTests(TestCase):
         self.assertTrue(i.in_work)
         self.assertFalse(i.done)
         self.assertEqual(i.author.surname, "Иванов")
+
+
+class ReportTests(TestCase):
+    def setUp(self):
+        self.loc, self.plant, self.person, self.prep = make_base()
+        ins = Inspection.objects.create(date=date(2026, 5, 1), legacy_id=2026050101, location=self.loc,
+                                        plant=self.plant, description="тля", done=False)
+        for d in range(40):
+            t = Treatment.objects.create(date=date(2026, 5, 2), location=self.loc, plant=self.plant,
+                                         person=self.person, tank=10, treat_type="Обработка", inspection=ins)
+            TreatmentReagent.objects.create(treatment=t, preparation=self.prep)
+
+    def load(self, url):
+        import io
+        import warnings
+        import openpyxl
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return openpyxl.load_workbook(io.BytesIO(r.content)).active
+
+    def test_treatment_report_shifts_footer_when_long(self):
+        ws = self.load(reverse("report_treatments") + f"?location={self.loc.pk}")
+        self.assertEqual(ws["A2"].value, "Объект: КП-3")
+        values = {c.value for row in ws.iter_rows() for c in row if isinstance(c.value, str)}
+        self.assertIn("Состояние:", values)
+        last_data = max(c.row for row in ws.iter_rows() for c in row if c.value == "Хорус")
+        state_row = [c.row for row in ws.iter_rows() for c in row if c.value == "Состояние:"][0]
+        self.assertEqual(last_data, 4 + 40 - 1)
+        self.assertGreater(state_row, last_data)
+
+    def test_inspection_act_has_signature_after_data(self):
+        ws = self.load(reverse("report_inspections"))
+        self.assertEqual(ws["A2"].value, 2026050101)
+        sig = [c.row for row in ws.iter_rows() for c in row if c.value == "Научный сотрудник"]
+        self.assertEqual(sig, [4])
+
+    def test_journal_row_count(self):
+        ws = self.load(reverse("report_journal"))
+        self.assertEqual(ws["F3"].value, "Хорус")
+        self.assertEqual(ws["G3"].value, 25.0)
+        self.assertEqual(ws["F42"].value, "Хорус")
+        self.assertIsNone(ws["F43"].value)
