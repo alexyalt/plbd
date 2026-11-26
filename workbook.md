@@ -7,3 +7,15 @@
 - Добавлены `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/ANALYSIS.md`, `docs/TZ.md`, `docs/legacy/vba_source.txt`, `README.md`.
 - Не проверялось: поведение форм Access в запущенном виде (Access в среде недоступен), содержимое папок `Template`, `Report_Photo`, `Report_Damage`.
 - Следующий шаг: этап 1 (каркас Django, `run.py`, импорт `.accdb`).
+
+## 2026-11-26 — этап 1-2: каркас и импорт (сделано)
+- Каркас Django (`config/`, `core/`), SQLite в `data/plbd.sqlite3` (не в git), `run.py` как единая точка запуска, `requirements.txt` (Django 5.2).
+- Модели `core/models.py`: Location, Place, Plant, Cause, Preparation, Person, TaskType, ProtectionRule, Inspection, Treatment, TreatmentReagent.
+- Импорт `core/management/commands/import_access.py` + `core/accessdb.py` (читает через pyodbc на Windows или mdb-export). Повторный импорт: `--replace`.
+- Решение: текстовые ссылки, которых нет в справочниках, превращаются в записи-заглушки (`is_placeholder=True`) и попадают в `data/migration_report.md`, а не теряются. Заглушек: объектов 1, растений 18, препаратов 17, сотрудников 22.
+- Проверено на реальных данных: число строк совпадает с источником (inspection 7304, treat 10291, place 312, flora 348 и т.д.); суммы `reag_count` по 172 препаратам совпадают с CSV без расхождений (всего 5 961 972); списано 2470.
+- Формула расхода подтверждена в VBA (строки 755-757 `docs/legacy/vba_source.txt`): `tank * norma_na_10l / 10`.
+- Факт из данных: форма Access пишет по одной строке `treat` на препарат; многопрепаратные строки (reag2/reag3) есть только у 49 записей. В новой модели это `TreatmentReagent`.
+- `docs` (6 строк, пути Z:\) пока не импортируется: файлов шаблонов нет.
+- Отклонение от ТЗ: HTMX не используется (интерфейс на обычных формах Django без внешних скриптов).
+- Следующие шаги: этап 3 (CRUD-интерфейс), затем обработки с расчётом, списание, слияние дублей, график защиты, резервная копия, тесты.
