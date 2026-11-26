@@ -1,0 +1,5482 @@
+
+
+================================================================================
+MODULE: Report_q_location
+================================================================================
+Attribute VB_Name = "Report_q_location"
+Attribute VB_Base = "0{8D44D464-139F-41FB-B94D-5DB84628F4C7}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+
+
+================================================================================
+MODULE: Report_task_report
+================================================================================
+Attribute VB_Name = "Report_task_report"
+Attribute VB_Base = "0{55C0C668-8500-4D87-A000-74A6F4A2FB25}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+
+
+Private Sub id_GotFocus()
+Dim two As String
+two = "fsd"
+
+End Sub
+
+Private Sub Report_Activate()
+Dim one() As String
+Dim x As Byte
+
+'one = Split(Me.farma_short.Value, ";")
+
+'For x = 0 To UBound(one)
+'Me("farma_" & x + 1).Value = one(x)
+'Next x
+
+End Sub
+
+Private Sub Report_Current()
+
+If Not (Me.plan.Value = "") Then
+Me.img.Picture = CurrentProject.Path & "\" & Me.plan.Value
+End If
+
+End Sub
+
+
+Private Sub ОбластьДанных_Format(Cancel As Integer, FormatCount As Integer)
+
+If Not Me.plan.Value = "" Then
+    Me.img.Picture = CurrentProject.Path & "\" & Me.plan.Value
+Else
+    Me.img.Picture = ""
+End If
+
+End Sub
+
+
+================================================================================
+MODULE: Form_main
+================================================================================
+Attribute VB_Name = "Form_main"
+Attribute VB_Base = "0{3BEF4276-F29D-4BBE-92D0-0C4D9B59A484}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Кнопка96_Click()
+
+End Sub
+
+Private Sub Кнопка138_Click()
+
+
+
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate, last_obj, one As String
+Dim str_A, str_B, str_C, str_D, str_E, str_F As Variant
+Dim x, y As Integer
+Dim rs As Recordset
+Dim print_heading As Boolean
+
+'Формируем рекордсет
+one = "SELECT inspection.location, place.place, inspection.flora, inspection.count, inspection.description, inspection.farma, inspection.task, inspection.done FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.done)=False)) ORDER BY inspection.location, inspection.farma;"
+Set rs = CurrentDb.OpenRecordset(one)
+
+'трясём рекордсет, чтобы убрать глюк подсчёта количества записей
+rs.MoveLast
+rs.MoveFirst
+
+'создаем документ эксель
+strTmplate = "Z:\BD_SPS\Template\spravka_inObjekt.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+'xlApp.ActiveWindow.View = xlPageBreakPreview 'Переключает вид в постраничный режим. Очень долго переключает
+
+last_obj = rs![location]
+print_heading = True
+y = 1
+
+For x = 1 To rs.RecordCount
+    If print_heading Then 'печатаем заголовок, если нужно
+        str_rng = "A" & y & ":F" & y
+'        xlApp.Range(str_rng).RowHeight = True
+        xlApp.Range(str_rng).Merge (True)
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Font.Size = 18
+        xlApp.Range("A" & y) = "Список проблем на подконтрольном участке."
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+'        xlApp.Range("A" & y).RowHeight = True
+        xlApp.Range("A" & y).Font.Size = 16
+        xlApp.Range("A" & y).Font.Bold = True
+        xlApp.Range("A" & y) = "Объект:"
+        str_rng = "B" & y & ":F" & y
+        xlApp.Range(str_rng).Merge (True)
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Font.Size = 16
+        xlApp.Range("B" & y) = last_obj
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        str_rng = "A" & y & ":F" & y
+'        xlApp.Range(str_rng).RowHeight = True
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Interior.Color = RGB(240, 240, 240)
+        xlApp.Range("A" & y) = "Куртина"
+        xlApp.Range("B" & y) = "Растение"
+        xlApp.Range("C" & y) = "Кол-во"
+        xlApp.Range("D" & y) = "Описание проблемы"
+        xlApp.Range("E" & y) = "Меры по устранению"
+        xlApp.Range("F" & y) = "Доп действия"
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        print_heading = False ' ставим отметку, что напечатали заголовок
+    End If
+
+    '  ПЕчатаем строку
+    str_A = rs![place]
+    str_B = rs![flora]
+    str_C = rs![count]
+    str_D = rs![description]
+    str_E = rs![farma]
+    str_F = rs![task]
+    xlApp.Range("A" & y) = str_A
+'    xlApp.Range("A" & y).RowHeight = True
+    xlApp.Range("B" & y) = str_B
+    xlApp.Range("C" & y) = str_C
+    xlApp.Range("D" & y) = str_D
+    xlApp.Range("E" & y) = str_E
+    xlApp.Range("F" & y) = str_F
+   
+    rs.MoveNext 'переводим указатель рекордсета на следующую запись
+    If Not rs.EOF Then 'Если не достигли конца файла
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        If last_obj <> rs![location] Then 'Сравниваем значение объекта со старым значением
+            print_heading = True 'Если отличаются, то ставим отметку о необходимости печати заголовка
+        End If
+        last_obj = rs![location]
+    End If
+Next x
+
+
+
+
+
+xlApp.Visible = True
+rs.Close
+Set rs = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+'начинаем заполнять документ.
+'xlApp.Range("B2") = (Me.location.Value)
+'xlApp.Range("A4").CopyFromRecordset rs
+
+
+End Sub
+
+
+================================================================================
+MODULE: Form_treat_add
+================================================================================
+Attribute VB_Name = "Form_treat_add"
+Attribute VB_Base = "0{4D621399-2584-40F7-B328-AB0CBD974270}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+Public num As Long
+
+
+'============================================================================================
+'============================================================== Раздел выбора препарата  ====
+'============================================================================================
+Private Sub farma_metod1_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 1, -1, 0)
+Next
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = True
+Me.farma_ad1.Value = False
+Me.farma_ad2.Visible = False
+Me.farma_ad2.Value = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod2_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 2, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = True
+Me.farma_ad1.Value = False
+Me.farma_ad2.Visible = False
+Me.farma_ad2.Value = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod3_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 3, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "По листу"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Caption = "Под корень"
+Me.farma_txt2.Visible = True
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo2.Visible = True
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod4_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 4, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "По листу"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Caption = "Под корень"
+Me.farma_txt2.Visible = True
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo2.Visible = True
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod5_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 5, -1, 0)
+Next
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """гранулированное""" & ") or ((farma.use)=" & """водорастворимое""" & ") or ((farma.use)=" & """жидкое""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod6_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 6, -1, 0)
+Next
+Me.farma_txt1.Visible = False
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = ""
+Me.farma_combo1.Visible = False
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+
+Me.farma_fild.Value = "Проведение обработки не целесообразно."
+
+End Sub
+Private Sub farma_ad1_Click()
+Dim one As String
+
+If Me.farma_ad1.Value = -1 Then
+    Me.farma_txt2.Caption = "Препарат"
+    Me.farma_txt2.Visible = True
+
+    Me.farma_ad2.Value = False
+    Me.farma_ad2.Visible = True
+    
+    one = IIf(Me.farma_metod1.Value = -1, """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ", """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ")
+    
+    Me.farma_combo2.Value = ""
+    Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & one
+    Me.farma_combo2.Visible = True
+Else
+    Me.farma_txt2.Visible = False
+    Me.farma_txt3.Visible = False
+    Me.farma_ad2.Visible = False
+    Me.farma_combo2.Value = ""
+    Me.farma_combo2.RowSource = ""
+    Me.farma_combo2.Visible = False
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = ""
+    Me.farma_combo3.Visible = False
+End If
+
+End Sub
+
+Private Sub farma_ad2_Click()
+Dim one As String
+
+If Me.farma_ad2.Value = -1 Then
+    Me.farma_txt3.Caption = "Препарат"
+    Me.farma_txt3.Visible = True
+    one = IIf(Me.farma_metod1.Value = -1, """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ", """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ")
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & one
+    Me.farma_combo3.Visible = True
+Else
+    Me.farma_txt3.Visible = False
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = ""
+    Me.farma_combo3.Visible = False
+
+End If
+End Sub
+
+Private Sub farma_combo1_AfterUpdate()
+Dim one As String
+
+If Me.farma_metod1 Then
+    Me.farma_fild.Value = "Обработать по листу препаратом: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+    ElseIf Me.farma_metod2 Then
+        Me.farma_fild.Value = "Пролить под корень препаратом: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+        ElseIf Me.farma_metod3 Then
+            Me.farma_fild.Value = "Провести комплексную обработку. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+            ElseIf Me.farma_metod4 Then
+                Me.farma_fild.Value = "Назначить курс. Троекратно, с интервалом в 7-10 дней. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                ElseIf Me.farma_metod5 Then
+                    If Me.farma_combo1.Column(3) = "гранулированное" Then
+                        Me.farma_fild.Value = "Внести препарат: " & Me.farma_combo1.Column(0) & " согласно инструкции с заделкой в почву."
+                            Else
+                                Me.farma_fild.Value = "Внести препарат: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+                    End If
+End If
+End Sub
+Private Sub farma_combo2_AfterUpdate()
+If Me.farma_metod1 Then
+    Me.farma_fild.Value = "Обработать по листу смесью препаратов: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. + " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+        ElseIf Me.farma_metod2 Then
+            Me.farma_fild.Value = "Пролить под корень смесью препаратов: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. + " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+                ElseIf Me.farma_metod3 Then
+                    Me.farma_fild.Value = "Провести комплексную обработку. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                    Me.farma_fild.Value = Me.farma_fild.Value & "Под корень: " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+                        ElseIf Me.farma_metod4 Then
+                            Me.farma_fild.Value = "Назначить курс. Троекратно, с интервалом в 7-10 дней. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                            Me.farma_fild.Value = Me.farma_fild.Value & "Под корень: " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+End If
+End Sub
+Private Sub farma_combo3_AfterUpdate()
+    Me.farma_fild.Value = Me.farma_fild.Value & " + " & Me.farma_combo3.Column(0) & " с н.п. " & Me.farma_combo3.Column(1) & Me.farma_combo3.Column(2) & " на 10 литров воды"
+End Sub
+
+
+
+
+
+
+
+'==============================================================
+'======================Новый раздел выбора агроприёмов.
+'==============================================================
+Private Sub task_combo_AfterUpdate()
+
+If Me.task_add.Value = -1 Then
+    Me.task_fild.Value = IIf(Me.task_fild.Value <> "", Me.task_fild.Value & " + " & Me.task_combo.Column(1), Me.task_combo.Column(1))
+Else
+    Me.task_fild.Value = Me.task_combo.Column(1)
+End If
+
+End Sub
+'==============================================================
+'==============================================================
+
+
+'===============================================================
+'' ===================== новый раздел выбора причины
+'===============================================================
+Private Sub reason_type1_Click()
+Me.reason_type1.Value = 1
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 0
+Me.reason_combo.RowSource = "SELECT pest.pest, pest.pest_lat FROM pest;"
+Me.reason_combo.ListItemsEditForm = "f_pest"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type2_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 1
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 0
+
+Me.reason_combo.RowSource = "SELECT sickness.sickness, sickness.sickness_lat FROM sickness;"
+Me.reason_combo.ListItemsEditForm = "f_sickness"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type3_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 1
+Me.reason_type4.Value = 0
+
+Me.reason_combo.RowSource = "SELECT physiology.physiology, physiology.physiology_des FROM physiology;"
+Me.reason_combo.ListItemsEditForm = "f_physiology"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type4_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 1
+
+Me.reason_combo.RowSource = "SELECT other.other, other.other_des FROM other;"
+Me.reason_combo.ListItemsEditForm = "f_other"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+
+Private Sub reason_combo_AfterUpdate()
+Dim reason_txt As String
+ 
+If Me.reason_type1 Then
+    reason_txt = IIf(Me.reason_post, "Последствия повреждения вредителем: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1), "Вредитель: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1))
+    Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+    Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Вредители", "Вредители")
+    Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+        ElseIf Me.reason_type2 Then
+            reason_txt = IIf(Me.reason_post, "Последствия перенесённого заболевания: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1), "Заболевание: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1))
+            Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+            Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Заболевания", "Заболевания")
+            Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+    
+            ElseIf Me.reason_type3 Then
+                reason_txt = Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1)
+                Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+                Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Физиология", "Физиология")
+                Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+                
+                ElseIf Me.reason_type4 Then
+                    reason_txt = Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1)
+                    Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+                    Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Другое", "Другое")
+                    Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+End If
+End Sub
+'==============================================================
+'==============================================================
+
+
+
+
+
+
+
+'============================================================================================
+' =================================================== Инициация формы  ======================
+'============================================================================================
+Private Sub Form_Load()
+
+Me.location_combo.Value = ""
+Me.place_list.RowSource = ""
+Me.place_fild.Value = ""
+
+Me.reason_post.Value = False
+Me.reason_ad.Value = False
+Me.reason_fild.Value = ""
+Me.reason_combo.RowSource = "SELECT pest.pest, pest.pest_lat FROM pest;"
+Me.reason_combo.ListItemsEditForm = "f_pest"
+
+farma_metod1_Click
+reason_type1_Click
+
+End Sub
+
+
+
+
+
+Private Sub data_fild_AfterUpdate() ' после выбора даты смотрим количество записей на данное число. выставляем счётчик в нужное значение
+Dim rst As Recordset
+Dim one As String
+Dim two As String
+Dim tri As String
+
+one = Format(data_fild.Value, "mm/dd/yyyy")
+two = Replace(one, ".", "/")
+tri = "SELECT * FROM inspection WHERE (((inspection.data)=#" & two & "#));"
+
+Set rst = CurrentDb.OpenRecordset(tri)
+' Если нет записей (указатель одновременно на начале и конце файла), то игнорировать
+If Not (rst.BOF And rst.EOF) Then
+    two = rst.RecordCount
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    two = rst.RecordCount
+End If
+
+
+Me.num_fild.Value = rst.RecordCount + 1 ' В поле номер записываем следующий порядковый номер
+ 
+Set rst = Nothing
+
+End Sub
+
+'============================================================================================
+' ======================================================= Раздел куртины и объекта ==========
+'============================================================================================
+Private Sub location_combo_AfterUpdate()
+' после выбора объекта выставляем значение источника строк для списка куртин
+Me.place_list.RowSource = "SELECT place.ID, place.place, place.plan FROM place WHERE (((place.parent)=""" & Me.location_combo.Text & """" & "));"
+End Sub
+Private Sub place_list_Click()
+' переносим данные из списка в поле куртины
+Me.place_fild.Value = Me.place_list.Column(1)
+Me.place_ID.Value = Me.place_list.Column(0)
+End Sub
+
+
+
+
+'============================================================================================
+' ======================================================= Раздел сохранения записи в таблицу ===
+'============================================================================================
+Private Sub Кнопка450_Click() ' сохранение записи в базе
+Dim rst As Recordset
+Dim one As String
+Dim Autor As Long
+Dim data_insp As Date
+Dim id_insp As String
+Dim location As String
+Dim place As Long
+Dim flora As String
+Dim flora_inv As String
+Dim flora_count As String
+Dim description As String
+Dim reason_tip As String
+Dim reason_short As String
+Dim reason As String
+Dim farma As String
+Dim reag1 As String
+Dim reag2 As String
+Dim reag3 As String
+Dim task As String
+
+Dim reag_count1 As Double
+Dim reag_count2 As Double
+Dim reag_count3 As Double
+Dim gasolin1 As Boolean
+Dim gasolin2 As Boolean
+Dim gasolin3 As Boolean
+Dim x As Integer
+Dim rep As Byte
+
+
+Autor = Me.Autor.Column(0)
+data_insp = Format(data_fild.Value, "dd/mm/yyyy")
+' переформатируем дату, чтобы получить код для записи осмотра
+id_insp = Replace(Format(Me.data_fild.Value, "yyyy/mm/dd"), ".", "")
+one = IIf(Len(Me.num_fild.Value) = 1, "0" & Me.num_fild.Value, Me.num_fild.Value)
+id_insp = id_insp & one
+
+location = Me.location_combo.Column(0)
+place = Me.place_list.Column(0)
+flora = Me.Flora_combo.Column(0)
+
+If Me.inv_fild.Value <> "" Then
+    flora_inv = Me.inv_fild.Value
+    flora_inv = UCase(Left(flora_inv, 1)) & Right(flora_inv, Len(flora_inv) - 1)
+End If
+
+flora_count = IIf(Me.count_fild.Value <> "", Me.count_fild.Value, "")
+
+description = Me.description_fild.Value
+description = UCase(Left(description, 1)) & Right(description, Len(description) - 1)
+reason_tip = Me.reason_type.Value
+reason_short = IIf(Me.reason_combo.Column(0) <> "", Me.reason_combo.Column(0), "")
+reason = Me.reason_fild.Value
+reason = UCase(Left(reason, 1)) & Right(reason, Len(reason) - 1)
+
+If Me.farma_fild.Value <> "" Then
+farma = Me.farma_fild.Value
+farma = UCase(Left(farma, 1)) & Right(farma, Len(farma) - 1)
+Else
+farma = ""
+End If
+reag1 = IIf(Me.farma_combo1.Value <> "", Me.farma_combo1.Value, "")
+reag2 = IIf(Me.farma_combo2.Value <> "", Me.farma_combo2.Value, "")
+reag3 = IIf(Me.farma_combo3.Value <> "", Me.farma_combo3.Value, "")
+task = IIf(Me.task_combo.Column(1) <> "", Me.task_combo.Column(1), "")
+
+
+
+' открываем рекордсет на таблицу осмотров
+Set rst = CurrentDb.OpenRecordset("select * from inspection")
+
+With rst ' записываем данные всех полей
+  .AddNew
+    ![Autor] = Autor
+    ![ID] = id_insp
+    ![data] = data_insp
+    ![location] = location
+    ![place] = place
+    ![flora] = flora
+    ![inv] = farma_inv
+    ![count] = farma_count
+    ![description] = description
+    ![reason_short] = reason_short
+    ![reason_tip] = reason_tip
+    ![reason] = reason
+    ![farma] = farma
+    ![reag1] = reag1
+    ![reag2] = reag2
+    ![reag3] = reag3
+    ![task] = task
+    ![done] = True
+  .Update
+End With
+
+' проядковый номер увеличиваем на единицу
+Me.num_fild.Value = Me.num_fild.Value + 1
+
+' закрываем рекордсет
+rst.Close
+Set rst = Nothing
+
+
+Dim gasolin(3) As Boolean
+Dim Treat_type(3) As String
+Dim reag(3) As String
+Dim reag_count(3) As String
+Dim t_type As String
+
+On Error Resume Next
+
+reag(1) = reag1
+reag(2) = reag2
+reag(3) = reag3
+reag_count(1) = (Me.treat_tank.Value * Me.farma_combo1.Column(1)) / 10
+reag_count(2) = (Me.treat_tank.Value * Me.farma_combo2.Column(1)) / 10
+reag_count(3) = (Me.treat_tank.Value * Me.farma_combo3.Column(1)) / 10
+
+
+If reag1 <> "" And reag2 <> "" And reag3 <> "" Then
+rep = 3
+    If Me.farma_metod1 Then
+        t_type = "Обработка"
+        gasolin(1) = True
+        gasolin(2) = True
+        gasolin(3) = True
+        ElseIf Me.farma_metod2 Then
+            t_type = "Пролив"
+            gasolin(1) = False
+            gasolin(2) = False
+            gasolin(3) = False
+            Else
+                t_type = "Внесение"
+                gasolin(1) = False
+                gasolin(2) = False
+                gasolin(3) = False
+        End If
+    Treat_type(1) = t_type
+    Treat_type(2) = t_type
+    Treat_type(3) = t_type
+
+    ElseIf reag1 <> "" And reag2 <> "" Then
+    rep = 2
+        If Me.farma_metod1 Then
+            Treat_type(1) = "Обработка"
+            Treat_type(2) = "Обработка"
+            gasolin(1) = True
+            gasolin(2) = True
+            ElseIf Me.farma_metod2 Then
+                Treat_type(1) = "Пролив"
+                Treat_type(2) = "Пролив"
+                gasolin(1) = False
+                gasolin(2) = False
+                ElseIf Me.farma_metod5 Then
+                    Treat_type(1) = "Внесение"
+                    Treat_type(2) = "Внесение"
+                    gasolin(1) = False
+                    gasolin(2) = False
+                    ElseIf Me.farma_metod4 Or Me.farma_metod3 Then
+                        Treat_type(1) = "Обработка"
+                        gasolin(1) = True
+                        Treat_type(2) = "Пролив"
+                        gasolin(2) = False
+        End If
+        Else
+        rep = 1
+            If Me.farma_metod1 Then
+            Treat_type(1) = "Обработка"
+            gasolin(1) = True
+            ElseIf Me.farma_metod2 Then
+                Treat_type(1) = "Пролив"
+                gasolin(1) = False
+                ElseIf Me.farma_metod5 Then
+                    Treat_type(1) = "Внесение"
+                    gasolin(1) = False
+            End If
+End If
+
+' открываем рекордсет на таблицу осмотров
+Set rst = CurrentDb.OpenRecordset("select * from treat")
+
+For x = 1 To rep
+    With rst ' записываем данные всех полей
+      .AddNew
+        ![data] = data_insp
+        ![location] = location
+        ![flora] = flora
+        ![reason] = id_insp
+        ![person] = Me.treat_person.Column(0)
+        ![tank] = Me.treat_tank.Value
+        ![Treat_type] = Treat_type(x)
+        ![reag1] = reag(x)
+        ![reag_count1] = reag_count(x)
+        ![gasolin] = gasolin(x)
+        If Me.result.Value <> "" Then
+            ![result] = Me.result.Value
+        Else
+            ![result] = ""
+        End If
+      .Update
+    End With
+Next x
+
+' закрываем рекордсет
+rst.Close
+Set rst = Nothing
+
+Me.Requery
+End Sub
+
+
+
+Private Sub Кнопка511_Click()
+Me.farma_fild.Value = ""
+End Sub
+Private Sub Кнопка512_Click()
+Me.reason_fild.Value = ""
+Me.reason_type.Value = ""
+Me.reason_short.Value = ""
+Me.reason_combo.Value = ""
+Me.reason_ad.Value = False
+Me.reason_post.Value = False
+End Sub
+Private Sub Кнопка535_Click()
+task_fild.Value = ""
+End Sub
+Private Sub Кнопка641_Click()
+Me.farma_fild.Value = "Проведение обработки не целесообразно."
+End Sub
+Private Sub Кнопка642_Click()
+Me.farma_fild.Value = ""
+End Sub
+
+
+================================================================================
+MODULE: Form_task_manager
+================================================================================
+Attribute VB_Name = "Form_task_manager"
+Attribute VB_Base = "0{BEA0E9CF-F4BC-476F-B0BA-02A749357B19}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+
+Private Sub Form_Current()
+Dim one As String
+Dim rst As Recordset
+
+'If Me.done.Value = -1 Then
+'Me.Done_pic.Visible = True
+'Else
+'Me.Done_pic.Visible = False
+'End If
+'' Получаем количество записей для актов в работе
+'Set rst = CurrentDb.OpenRecordset("SELECT inspection.inWork, inspection.done FROM inspection WHERE (((inspection.inWork)=True) AND ((inspection.done)=False));")
+''If Not rst.EOF Then ' Если есть записи
+'    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+'    Me.count_inWork.Value = rst.RecordCount
+'Else
+'    Me.count_inWork.Value = 0
+'End If
+'Set rst = Nothing
+''' выделяем красным, если сроки большие
+'If Me.task_data.Value < Date Then
+'    Me.task_data.BackColor = vbRed
+'    Me.task_data.ForeColor = vbWhite
+'Else
+'    Me.task_data.BackColor = 16777215
+'    Me.task_data.ForeColor = vbBlack
+'End If
+
+'Me.person.Value = ""
+'Me.data_treat = ""
+
+Me.treat_type1.Value = ""
+Me.treat_type2.Value = ""
+Me.treat_type3.Value = ""
+
+Me.gasolin1.Value = False
+Me.gasolin2.Value = False
+Me.gasolin3.Value = False
+
+Me.tank1.Value = ""
+Me.tank2.Value = ""
+Me.tank3.Value = ""
+
+Me.reag_count1.Value = ""
+Me.reag_count2.Value = ""
+Me.reag_count3.Value = ""
+
+'Me.reag1.Value = ""
+'Me.reag2.Value = ""
+'Me.reag3.Value = ""
+
+Me.place.Requery
+
+End Sub
+
+
+
+Private Sub rep_exl_Click()
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate, last_obj, one As String
+Dim str_A, str_B, str_C, str_D, str_E, str_F As Variant
+Dim x, y As Integer
+Dim rs As Recordset
+Dim print_heading As Boolean
+
+'Формируем рекордсет
+one = "SELECT inspection.location, place.place, inspection.flora, inspection.count, inspection.description, inspection.farma, inspection.task, inspection.done FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.done)=False)) ORDER BY inspection.location, inspection.farma;"
+Set rs = CurrentDb.OpenRecordset(one)
+
+'трясём рекордсет, чтобы убрать глюк подсчёта количества записей
+rs.MoveLast
+rs.MoveFirst
+
+'создаем документ эксель
+strTmplate = "Z:\BD_SPS\Template\spravka_inObjekt.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+'xlApp.ActiveWindow.View = xlPageBreakPreview 'Переключает вид в постраничный режим. Очень долго переключает
+
+last_obj = rs![location]
+print_heading = True
+y = 1
+
+For x = 1 To rs.RecordCount
+    If print_heading Then 'печатаем заголовок, если нужно
+        str_rng = "A" & y & ":F" & y
+'        xlApp.Range(str_rng).RowHeight = True
+        xlApp.Range(str_rng).Merge (True)
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Font.Size = 18
+        xlApp.Range("A" & y) = "Список проблем на подконтрольном участке."
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+'        xlApp.Range("A" & y).RowHeight = True
+        xlApp.Range("A" & y).Font.Size = 16
+        xlApp.Range("A" & y).Font.Bold = True
+        xlApp.Range("A" & y) = "Объект:"
+        str_rng = "B" & y & ":F" & y
+        xlApp.Range(str_rng).Merge (True)
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Font.Size = 16
+        xlApp.Range("B" & y) = last_obj
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        str_rng = "A" & y & ":F" & y
+'        xlApp.Range(str_rng).RowHeight = True
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Interior.Color = RGB(240, 240, 240)
+        xlApp.Range("A" & y) = "Куртина"
+        xlApp.Range("B" & y) = "Растение"
+        xlApp.Range("C" & y) = "Кол-во"
+        xlApp.Range("D" & y) = "Описание проблемы"
+        xlApp.Range("E" & y) = "Меры по устранению"
+        xlApp.Range("F" & y) = "Доп действия"
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        print_heading = False ' ставим отметку, что напечатали заголовок
+    End If
+
+    '  ПЕчатаем строку
+    str_A = rs![place]
+    str_B = rs![flora]
+    str_C = rs![count]
+    str_D = rs![description]
+    str_E = rs![farma]
+    str_F = rs![task]
+    xlApp.Range("A" & y) = str_A
+'    xlApp.Range("A" & y).RowHeight = True
+    xlApp.Range("B" & y) = str_B
+    xlApp.Range("C" & y) = str_C
+    xlApp.Range("D" & y) = str_D
+    xlApp.Range("E" & y) = str_E
+    xlApp.Range("F" & y) = str_F
+   
+    rs.MoveNext 'переводим указатель рекордсета на следующую запись
+    If Not rs.EOF Then 'Если не достигли конца файла
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        If last_obj <> rs![location] Then 'Сравниваем значение объекта со старым значением
+            print_heading = True 'Если отличаются, то ставим отметку о необходимости печати заголовка
+        End If
+        last_obj = rs![location]
+    End If
+Next x
+
+
+
+
+
+xlApp.Visible = True
+rs.Close
+Set rs = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+
+'начинаем заполнять документ.
+'xlApp.Range("B2") = (Me.location.Value)
+'xlApp.Range("A4").CopyFromRecordset rs
+
+
+
+
+
+
+
+
+End Sub
+
+'Private Sub tank_AfterUpdate()
+'Dim rst2 As Recordset
+'
+'        If Me.reag1.Value <> "" Then
+'            Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag1.Value & """")
+'            Me.reag_count1.Value = (rst2.Fields(2) * Me.tank1.Value) / 10
+'            Set rst2 = Nothing
+'        End If
+'
+'        If Me.reag2.Value <> "" Then
+'            Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag2.Value & """")
+'            Me.reag_count2.Value = (rst2.Fields(2) * Me.tank2.Value) / 10
+'            Set rst2 = Nothing
+'        End If
+'
+'        If (Me.reag3.Value <> "") Then
+'            Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag3.Value & """")
+'            Me.reag_count3.Value = (rst2.Fields(2) * Me.tank3.Value) / 10
+'            Set rst2 = Nothing
+'        End If
+'
+'        If Me.reag4.Value <> "" Then
+'            Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag4.Value & """")
+'            Me.reag_count4.Value = (rst2.Fields(2) * Me.tank.Value) / 10
+'            Set rst2 = Nothing
+'        End If
+'End Sub
+
+
+
+
+
+Private Sub tank1_AfterUpdate()
+Dim rst2 As Recordset
+    
+    If (Me.farma.Value Like "Обработать по листу препаратом:*") Or (Me.farma.Value Like "Обработать по листу смесью препаратов:*") Then
+        Me.treat_type1.Value = "Обработка"
+        Me.gasolin1.Value = -1
+            ElseIf (Me.farma.Value Like "Пролить под корень препаратом:*") Or (Me.farma.Value Like "Пролить под корень смесью препаратов:*") Then
+            Me.treat_type1.Value = "Пролив"
+    End If
+
+    Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag1.Value & """")
+    Me.reag_count1.Value = (rst2.Fields(2) * Me.tank1.Value) / 10
+    rst2.Close
+    Set rst2 = Nothing
+End Sub
+Private Sub tank2_AfterUpdate()
+Dim rst2 As Recordset
+
+    If (Me.farma.Value Like "Обработать по листу препаратом:*") Or (Me.farma.Value Like "Обработать по листу смесью препаратов:*") Then
+        Me.treat_type2.Value = "Обработка"
+        Me.gasolin2.Value = -1
+            ElseIf (Me.farma.Value Like "Пролить под корень препаратом:*") Or (Me.farma.Value Like "Пролить под корень смесью препаратов:*") Then
+            Me.treat_type2.Value = "Пролив"
+    End If
+    
+    Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag2.Value & """")
+    Me.reag_count2.Value = (rst2.Fields(2) * Me.tank2.Value) / 10
+    rst2.Close
+    Set rst2 = Nothing
+End Sub
+Private Sub tank3_AfterUpdate()
+Dim rst2 As Recordset
+
+    If (Me.farma.Value Like "Обработать по листу препаратом:*") Or (Me.farma.Value Like "Обработать по листу смесью препаратов:*") Then
+        Me.treat_type3.Value = "Обработка"
+        Me.gasolin3.Value = -1
+            ElseIf (Me.farma.Value Like "Пролить под корень препаратом:*") Or (Me.farma.Value Like "Пролить под корень смесью препаратов:*") Then
+            Me.treat_type3.Value = "Пролив"
+    End If
+    
+    Set rst2 = CurrentDb.OpenRecordset("select * from farma where farma.farma_name =""" & Me.reag3.Value & """")
+    Me.reag_count3.Value = (rst2.Fields(2) * Me.tank3.Value) / 10
+    rst2.Close
+    Set rst2 = Nothing
+End Sub
+
+
+Private Sub treat_type1_AfterUpdate()
+If Me.treat_type1.Value = "Обработка" Then
+    Me.gasolin1.Value = -1
+Else
+    Me.gasolin1.Value = 0
+End If
+End Sub
+Private Sub treat_type2_AfterUpdate()
+If Me.treat_type2.Value = "Обработка" Then
+    Me.gasolin2.Value = -1
+Else
+    Me.gasolin2.Value = 0
+End If
+End Sub
+Private Sub treat_type3_AfterUpdate()
+If Me.treat_type3.Value = "Обработка" Then
+    Me.gasolin3.Value = -1
+Else
+    Me.gasolin3.Value = 0
+End If
+End Sub
+
+
+
+
+
+
+Private Sub Кнопка371_Click()
+Dim rst As Recordset
+Dim rst2 As Recordset
+Dim rep As Byte
+Dim x As Byte
+Dim tank(3) As Integer
+Dim gasolin(3) As Boolean
+Dim reag(3) As String
+Dim reag_count(3) As Double
+Dim Treat_type(3) As String
+
+
+
+' открываем рекордсет на таблицу осмотров
+Set rst = CurrentDb.OpenRecordset("select * from treat")
+
+rep = 0
+
+If Me.tank1.Value <> "" Then
+    rep = rep + 1
+    tank(rep) = Me.tank1.Value
+    Treat_type(rep) = Me.treat_type1.Value
+    gasolin(rep) = Me.gasolin1.Value
+    reag(rep) = Me.reag1.Value
+    reag_count(rep) = Me.reag_count1.Value
+End If
+
+If Me.tank2.Value <> "" Then
+    rep = rep + 1
+    tank(rep) = Me.tank2.Value
+    Treat_type(rep) = Me.treat_type2.Value
+    gasolin(rep) = Me.gasolin2.Value
+    reag(rep) = Me.reag2.Value
+    reag_count(rep) = Me.reag_count2.Value
+End If
+
+If Me.tank3.Value <> "" Then
+    rep = rep + 1
+    tank(rep) = Me.tank3.Value
+    Treat_type(rep) = Me.treat_type3.Value
+    gasolin(rep) = Me.gasolin3.Value
+    reag(rep) = Me.reag3.Value
+    reag_count(rep) = Me.reag_count3.Value
+End If
+
+
+For x = 1 To rep
+    With rst ' записываем данные всех полей
+      .AddNew
+        ![data] = Me.data_treat.Value
+        ![person] = Me.person.Value
+        ![location] = Me.location.Value
+        ![flora] = Me.flora.Value
+        ![reason] = Me.ID.Value
+        If Me.result.Value <> "" Then
+        ![result] = Me.result.Value
+        Else
+        ![result] = ""
+        End If
+        ![tank] = tank(x)
+        ![Treat_type] = Treat_type(x)
+        ![reag1] = reag(x)
+        ![reag_count1] = reag_count(x)
+        ![gasolin] = gasolin(x)
+      .Update
+    End With
+Next x
+
+' закрываем рекордсет
+rst.Close
+Set rst = Nothing
+
+
+Me.done.Value = True
+DoCmd.Requery
+
+End Sub
+
+Private Sub Кнопка594_Click()
+Dim rst As Recordset
+Dim rst2 As Recordset
+Dim rep As Byte
+Dim x As Byte
+Dim tank(3) As Integer
+Dim gasolin(3) As Boolean
+Dim reag(3) As String
+Dim reag_count(3) As Double
+Dim Treat_type(3) As String
+
+
+
+' открываем рекордсет на таблицу осмотров
+Set rst = CurrentDb.OpenRecordset("select * from treat")
+
+rep = 0
+
+If Me.tank1.Value <> "" Then
+    rep = rep + 1
+    tank(rep) = Me.tank1.Value
+    Treat_type(rep) = Me.treat_type1.Value
+    gasolin(rep) = Me.gasolin1.Value
+    reag(rep) = Me.reag1.Value
+    reag_count(rep) = Me.reag_count1.Value
+End If
+
+If Me.tank2.Value <> "" Then
+    rep = rep + 1
+    tank(rep) = Me.tank2.Value
+    Treat_type(rep) = Me.treat_type2.Value
+    gasolin(rep) = Me.gasolin2.Value
+    reag(rep) = Me.reag2.Value
+    reag_count(rep) = Me.reag_count2.Value
+End If
+
+If Me.tank3.Value <> "" Then
+    rep = rep + 1
+    tank(rep) = Me.tank3.Value
+    Treat_type(rep) = Me.treat_type3.Value
+    gasolin(rep) = Me.gasolin3.Value
+    reag(rep) = Me.reag3.Value
+    reag_count(rep) = Me.reag_count3.Value
+End If
+
+
+For x = 1 To rep
+    With rst ' записываем данные всех полей
+      .AddNew
+        ![data] = Me.data_treat.Value
+        ![person] = Me.person.Value
+        ![location] = Me.location.Value
+        ![flora] = Me.flora.Value
+        ![reason] = Me.ID.Value
+        If Me.result.Value <> "" Then
+        ![result] = Me.result.Value
+        Else
+        ![result] = ""
+        End If
+        ![tank] = tank(x)
+        ![Treat_type] = Treat_type(x)
+        ![reag1] = reag(x)
+        ![reag_count1] = reag_count(x)
+        ![gasolin] = gasolin(x)
+      .Update
+    End With
+Next x
+
+' закрываем рекордсет
+rst.Close
+Set rst = Nothing
+
+DoCmd.Requery
+End Sub
+
+
+================================================================================
+MODULE: Form_person_gid
+================================================================================
+Attribute VB_Name = "Form_person_gid"
+Attribute VB_Base = "0{1F3EF87A-8249-4290-B274-C4BA8C0ED8D6}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Кнопка59_Click()
+Me.OrderBy = "[farma].[farma_name]"
+
+
+End Sub
+
+
+================================================================================
+MODULE: Form_place_gid
+================================================================================
+Attribute VB_Name = "Form_place_gid"
+Attribute VB_Base = "0{F5934381-B011-4E7F-82C2-28D5F14AA311}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Кнопка59_Click()
+Me.OrderBy = "[farma].[farma_name]"
+
+
+End Sub
+
+
+================================================================================
+MODULE: Form_f_inspect
+================================================================================
+Attribute VB_Name = "Form_f_inspect"
+Attribute VB_Base = "0{E9278DCF-13BD-4CA2-8C1E-8A4B6BBCDAA3}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub description_Click()
+[Forms]![Inspection ADD].description_fild.Value = Me.description.Value
+End Sub
+Private Sub flora_Click()
+one = Me.flora.Value
+[Forms]![Inspection ADD].Flora_combo.SetFocus
+[Forms]![Inspection ADD].Flora_combo.SelText = one
+End Sub
+Private Sub location_Click()
+one = Me.location.Value
+[Forms]![Inspection ADD].location_combo.SetFocus
+[Forms]![Inspection ADD].location_combo.SelText = one
+End Sub
+Private Sub reason_Click()
+[Forms]![Inspection ADD].reason_fild.Value = Me.reason.Value
+[Forms]![Inspection ADD].reason_type.Value = Me.reason.Tag
+End Sub
+
+
+Private Sub Form_Current()
+Dim one As String
+On Error Resume Next
+
+Me.reason.Tag = Me.reason_type.Value
+
+
+'one = Me.location.Value
+'[Forms]![Inspection ADD].location_combo.SetFocus
+'[Forms]![Inspection ADD].location_combo.SelText = one
+'
+'[Forms]![Inspection ADD].place_fild.Value = Me.place.Column(1)
+'[Forms]![Inspection ADD].place_ID.Value = Me.place.Column(0)
+'
+'one = Me.flora.Value
+'[Forms]![Inspection ADD].Flora_combo.SetFocus
+'[Forms]![Inspection ADD].Flora_combo.SelText = one
+'
+'[Forms]![Inspection ADD].inv_fild.Value = Me.inv.Value
+'[Forms]![Inspection ADD].count_fild.Value = Me.f_count.Value
+'[Forms]![Inspection ADD].description_fild.Value = Me.description.Value
+'[Forms]![Inspection ADD].reason_fild.Value = Me.reason.Value
+'[Forms]![Inspection ADD].farma_fild.Value = Me.farma.Value
+'[Forms]![Inspection ADD].task_fild.Value = Me.task.Value
+'
+
+End Sub
+
+
+
+
+================================================================================
+MODULE: Form_#Flora_place
+================================================================================
+Attribute VB_Name = "Form_#Flora_place"
+Attribute VB_Base = "0{6D739BDE-15B1-4ADC-8CC0-CAA18B6CA4D2}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub flora_list_DblClick(Cancel As Integer)
+Dim rst As Recordset
+Dim one As String
+Dim two As String
+Dim lft_part As String
+Dim rght_part As String
+Dim sumary As String
+Dim pos As Long
+Dim r_pos As Long
+Dim r_len As Long
+ 
+Dim Msg, Style, Title, Response
+Msg = "Вы хотите удалить выбранную куртину из списка?" & Chr(13) & Chr(10) & Chr(10) & "ВНИМАНИЕ! удаление данных из этого списка отразится на списке состава куртин."
+
+Style = vbYesNo
+Title = "Удаление куртины"
+
+Response = MsgBox(Msg, Style, Title)
+If Response = vbYes Then
+    
+    one = "SELECT place.id, place.content FROM place WHERE place.id=" & Me.ID.Value & ";"
+    Set rst = CurrentDb.OpenRecordset(one)
+    
+    flora_fnd = Me.flora_list.Column(1)
+    
+    pos = InStr(1, rst![content], flora_fnd) 'Определяем начало наименования
+    lft_part = Mid(rst![content], 1, pos - 1) 'Вырезаем левую часть
+    r_pos = pos + Len(flora_fnd) + 1 'Определяем начало правой части
+    r_len = Len(rst!content) - r_pos + 1 ' - 1  'определяем остаточную длинну
+
+    On Error Resume Next
+    
+    rght_part = Mid(rst![content], r_pos, r_len) 'вырезаем правую часть
+    sumary = lft_part & rght_part
+    
+    rst.Edit
+    rst![content] = sumary
+    rst.Update
+    
+    rst.Close
+    Set rst = Nothing
+    
+    Lst_Index = Me.flora_list.ListIndex
+    Me.flora_list.RemoveItem (Lst_Index)
+
+End If
+End Sub
+
+Private Sub Form_Current()
+Dim flora_tmp() As String
+Dim x As Integer
+Dim id_place As Long
+Dim tmp_str As String
+
+
+' очищаем комбик растений
+For x = 1 To Me.flora_list.ListCount
+    Me.flora_list.RemoveItem (0)
+Next x
+
+If Not IsNull(Me.content.Value) Then
+    ' и вносим новые значения
+    flora_tmp = Split(Me.content.Value, ";")
+    id_place = Me.ID.Value
+    
+    For x = 0 To UBound(flora_tmp)
+        tmp_str = id_place & ";" & LTrim(flora_tmp(x))
+        Me.flora_list.AddItem (tmp_str)
+    Next x
+End If
+
+Me.flora_list.Value = Null
+End Sub
+
+
+
+Private Sub Кнопка138_Click()
+Dim tmp_str As String
+Dim tmp_flora As String
+    
+If Not IsNull(Me.flora_cmb.Value) Then
+    tmp_flora = RTrim(LTrim(Me.flora_cmb.Value))
+    tmp_str = Me.ID.Value & ";" & tmp_flora
+    Me.flora_list.AddItem (tmp_str)
+    Me.content.Value = IIf(Me.content.Value <> "", Me.content.Value & ";" & tmp_flora, tmp_flora)
+End If
+
+End Sub
+
+
+================================================================================
+MODULE: Report_farma_report_oficial
+================================================================================
+Attribute VB_Name = "Report_farma_report_oficial"
+Attribute VB_Base = "0{DF810DEE-1702-4E05-921A-57CB4B995EC1}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Report_Load()
+Dim rst As Recordset
+Dim one As String
+Dim x As Integer
+
+
+
+
+
+'one = "SELECT farma_report.place_id, farma_report.farma_id, farma_report.farma_name, Sum(farma_report.farma_count) AS [Sum-farma_count], farma_report.coment FROM farma_report GROUP BY farma_report.place_id, farma_report.farma_id, farma_report.farma_name, farma_report.coment;"
+
+one = "SELECT farma_report.place_id, Sum(farma_report.farma_count) AS [Sum-farma_count], farma_report.coment, farma.farma_code, farma.sklad_name, farma.sklad_pref FROM farma INNER JOIN farma_report ON farma.farma_name = farma_report.farma_name GROUP BY farma_report.place_id, farma_report.coment, farma.farma_code, farma.sklad_name, farma.sklad_pref ORDER BY farma_report.place_id;"
+Set rst = CurrentDb.OpenRecordset(one)
+
+
+' Если нет записей (указатель одновременно на начале и конце файла), то игнорировать
+If Not (rst.BOF And rst.EOF) Then
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    rst.MoveFirst ' вернуть указатель на начало рекордсета
+
+
+    Me.farma_code.Value = rst![farma_code]
+    Me.farma_name = rst![sklad_name]
+    Me.farma_pref.Value = rst![sklad_pref]
+    Me.report_number.Value = report_number
+    Me.report_date = report_date
+    
+    
+    
+    For x = 1 To rst.RecordCount
+        Me.Controls("loc_" & x).Value = rst![place_ID]
+        Me.Controls("farm_count_" & x).Value = rst![Sum-farma_count]
+
+        rst.MoveNext
+    Next x
+
+End If
+
+' открываем цикл по количеству записей в рекордсете
+' открываем цикл по количеству ячеек в документе
+' сравниваем элемент в ячейке с элементом из рекордсета
+' если соответствует - плюсуем с имеющимся значением и записываем в глобальный массив айди записи из таблицы обработок
+' если не соответствует - заводим новую ячейку, записываем туда значение, записываем в глобальный массив айди записи из таблицы обработок
+
+
+End Sub
+
+
+================================================================================
+MODULE: Form_inspection_book
+================================================================================
+Attribute VB_Name = "Form_inspection_book"
+Attribute VB_Base = "0{43A78050-76C3-4FE8-B494-7160FB3AB8BE}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Кнопка127_Click()
+Me.Filter = ""
+End Sub
+
+Private Sub Кнопка170_Click()
+'IIf (Me.Filter<>"", Me.Filter = me.Filter & " AND ([inspection].[done] = 0)", Me.Filter ="([inspection].[done] = 0)")
+'If Me.Filter <> "" Then
+'    Me.Filter = Me.Filter & " AND ([inspection].[done] = 0)"
+'Else
+'    Me.Filter = "([inspection].[done] = 0)"
+'End If
+
+Me.Filter = "([inspection].[done] = 0)"
+Me.FilterOn = True
+
+End Sub
+
+Private Sub Кнопка174_Click()
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate, last_obj, one As String
+Dim str_A, str_B, str_C, str_D, str_E, str_F As Variant
+Dim x, y As Integer
+Dim rs As Recordset
+Dim print_heading As Boolean
+
+'Формируем рекордсет
+one = "SELECT inspection.location, place.place, inspection.flora, inspection.count, inspection.description, inspection.farma, inspection.task, inspection.done FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.done)=False)) ORDER BY inspection.location, inspection.farma;"
+Set rs = CurrentDb.OpenRecordset(one)
+
+'трясём рекордсет, чтобы убрать глюк подсчёта количества записей
+rs.MoveLast
+rs.MoveFirst
+
+'создаем документ эксель
+strTmplate = "Z:\BD_SPS\Template\spravka_inObjekt.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+'xlApp.ActiveWindow.View = xlPageBreakPreview 'Переключает вид в постраничный режим. Очень долго переключает
+
+last_obj = rs![location]
+print_heading = True
+y = 1
+
+For x = 1 To rs.RecordCount
+    If print_heading Then 'печатаем заголовок, если нужно
+        str_rng = "A" & y & ":F" & y
+'        xlApp.Range(str_rng).RowHeight = True
+        xlApp.Range(str_rng).Merge (True)
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Font.Size = 18
+        xlApp.Range("A" & y) = "Список проблем на подконтрольном участке."
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+'        xlApp.Range("A" & y).RowHeight = True
+        xlApp.Range("A" & y).Font.Size = 16
+        xlApp.Range("A" & y).Font.Bold = True
+        xlApp.Range("A" & y) = "Объект:"
+        str_rng = "B" & y & ":F" & y
+        xlApp.Range(str_rng).Merge (True)
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Font.Size = 16
+        xlApp.Range("B" & y) = last_obj
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        str_rng = "A" & y & ":F" & y
+'        xlApp.Range(str_rng).RowHeight = True
+        xlApp.Range(str_rng).Font.Bold = True
+        xlApp.Range(str_rng).Interior.Color = RGB(240, 240, 240)
+        xlApp.Range("A" & y) = "Куртина"
+        xlApp.Range("B" & y) = "Растение"
+        xlApp.Range("C" & y) = "Кол-во"
+        xlApp.Range("D" & y) = "Описание проблемы"
+        xlApp.Range("E" & y) = "Меры по устранению"
+        xlApp.Range("F" & y) = "Доп действия"
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        print_heading = False ' ставим отметку, что напечатали заголовок
+    End If
+
+    '  ПЕчатаем строку
+    str_A = rs![place]
+    str_B = rs![flora]
+    str_C = rs![count]
+    str_D = rs![description]
+    str_E = rs![farma]
+    str_F = rs![task]
+    xlApp.Range("A" & y) = str_A
+'    xlApp.Range("A" & y).RowHeight = True
+    xlApp.Range("B" & y) = str_B
+    xlApp.Range("C" & y) = str_C
+    xlApp.Range("D" & y) = str_D
+    xlApp.Range("E" & y) = str_E
+    xlApp.Range("F" & y) = str_F
+   
+    rs.MoveNext 'переводим указатель рекордсета на следующую запись
+    If Not rs.EOF Then 'Если не достигли конца файла
+        y = y + 1 'Увеличиваем указатель на 1 единицу
+        If last_obj <> rs![location] Then 'Сравниваем значение объекта со старым значением
+            print_heading = True 'Если отличаются, то ставим отметку о необходимости печати заголовка
+        End If
+        last_obj = rs![location]
+    End If
+Next x
+
+
+
+
+
+xlApp.Visible = True
+rs.Close
+Set rs = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+'начинаем заполнять документ.
+'xlApp.Range("B2") = (Me.location.Value)
+'xlApp.Range("A4").CopyFromRecordset rs
+
+End Sub
+
+Private Sub Кнопка57_Click()
+Dim one As String
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate As String
+Dim rs As Recordset
+
+
+
+strTmplate = "Z:\BD_SPS\Template\insp_report.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+'"SELECT inspection.id, inspection.location, inspection.place, inspection.flora, inspection.inv, inspection.count, inspection.description, inspection.reason_tip, inspection.reason, inspection.farma, inspection.task FROM inspection;"
+
+'spravka_inObjekt.xltx
+
+one = "SELECT inspection.id, inspection.location, place.place, inspection.flora, inspection.inv, inspection.count, inspection.description, inspection.reason_tip, inspection.reason, inspection.farma, inspection.task FROM place INNER JOIN inspection ON place.id = inspection.place;"
+
+
+If Me.Filter <> "" Then
+    one = Left(one, Len(one) - 1)
+    one = one & " WHERE " & Me.Filter & ";"
+End If
+
+    Me.OrderBy = "[inspection].[location]"
+    one = Left(one, Len(one) - 1)
+    one = one & " Order By " & Me.OrderBy & ";"
+
+Set rs = CurrentDb.OpenRecordset(one)
+
+
+xlApp.Range("A2").CopyFromRecordset rs
+
+xlApp.Visible = True
+
+rs.Close
+Set rst = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+
+End Sub
+
+
+
+================================================================================
+MODULE: EURITNKFSIFWPDKLIXPKMMJQMDBN
+================================================================================
+   њ      р № .select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *from select *frrm*from select *from select *from selherelect *from select *from select *froselect *from select *from select *from select *from select *from select *from select *from select *fm select *from select *from select *from select *farma *from select *from select *from st *from select *from select *from see= "¬       m select *from select *from select *from select *farma *from selecfrofrom set*rset*rsel *fel "    v*fr.    v*fr.    v*fr.    v*fr    sem sЁЁ' J     р І . ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦                                                     њ      р № .Ё     m set*rset*rsel *fel "    v*fr*fr*frfro*fr   o*fr ¦¦¦    № 
+ 0select *from select *01t *farma *from selecfrofrom set*rset*r'                яя    slc¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ ¦ frolec' 8om se яe яe яe яe яe яe яe яe яe яяяя яe яяяяяяяяяяяяяяяяfo eet*am fo eeformstre*o t*rmslc fo eet*rmа  v*r реv*r.  f                                           Ё  mstre*sl*e т*e        њ                              strstre*sl*e    fтро   frfromv*rselect *from lect *farma *from selecea  selllllelecea  selllllelecea     ."  " г                                                               fo e         eee sll  tsr*le  fр  f sllllleee   " "                                 oe "  оesl s*e р sllйййййййec           яя!      t*rsel *fel "    v*fr.h.h.h   яя! P *f:Ђ   яя! P          я я яR г     Ю :ЂЂ ¬    я я я  я я яR г     Ю :ЂЂЂЂЂЂ г     Ю :ЂЂЂЂЂЂ г     Ю ¦ ¦                                                              яя!  ¦ ¦     ! :Ђ„ c fя ¦ ! @from Ђt! @from Ђt! @@@@@  яя! % ee @@@@ :      J  я  я  fя ¦ ! ! e @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ :ЂJJJJJJJ    lc sllllleee   " "   V          ¬я!   :ЂLLLLLLL     rmslc fo eet*rmslcslcsVsVs@: ¬ 
+ :ЂN      яel *fel "    v*f V.h   ¬@@   :ЂJJJJJJJJ   :Ђ *felfeleet*am fo eeformst! ! ! ::fro    Юrяlec! @г    њ      яя! formst! ! :Ђ†k¦¦¦я   Com           ¦  я`              закрыва               р        ор eяяяяяя eяяяяяяяя   р І ."  яяB@         o eЂt! @from Ђt! @@@@@¦¦¦я                 r r r r r r  яяяя  Ф     v*frri. rri.e*rm_frofrom set*rset*m e @@@@@@@@ :ЂJJJJJ"oЂJJJJ ¦ ¦ frolec' 8#tr¦ ¦ ¦ ¦ t_edit"
+select *from Basect *0{2DF125EF-80E2-4900-9ABC-51C584BF9348}GlobalrscfSpac "  Falseяяяяяяяяяяяяfo Cablam fTru::fro    ЮrяlPredecla348IdfrofelExpose        TemplateDeriv   v*frrCustomiz    я t! ! Option Comp    Datab. 
+atabPeleel  Sub m seletype_AfterUpd()
+If Me.Tct *f4BF9.Valu ¦ ¦"Обработка" Then
+    t_ef_gasolinm Basect -1
+E*from Falseяяя0o Cnd Ifen
+      я яR г     Ю Кнопка31_Click"  Dim rst As Recordset
+om Fals2Falseag_count1t -1Doulec()
+If fen
+    _AfteяR г  3ct *f4BF9.431_Click"  Dim oneountS seng    untS s      f_   g1.Column(1) <> ":Ђ„ c fя ¦ Set  ¦ 2froCurrentDb.Openrmst! ! ("select * from farma wherentDb.O. Set _nelect *.Va&    frrCustomiz    я & O""ea  *fo C *fel " =я t! .Fields(2entDb.OЮrяlPredNothi яяяE      eet*IsNull(fro
+  solect *f)       Ё  m яя!rnD2022010220rom           t! .FroCurrentDb.Opeяяя eяяяяя
+' m fрываем рекордсет на таблицу осмотров
+ <> ":Ђd()
+If Me.Tct f4BF9.Va@@@@@im r
+Withseag ' записredNotданные всех полей:ЂLL.AddNew  ¬![@@@a]ectom f_dNew:ЂLLLLotданныеloca     всех полew:ЂLLLLEF-80E2-0lseяяя0![perg_c[@@@a]ect0E2-0lЂLLLLotданныеloca florмотров
+ <otдан80E2-0ls1ew  ¬!tanktom f_dNels1eекордсет на таt! @@@ов
+ <otдrom Ђt! @froDb.OpeяяlExp1tom f_dNe @froныеloca     всех пDb.O:fro   t! (oDb r stomi *f)      ) / 1froelec![0ls1ew 2@a]ect020E2-0lЂLLLrom sele3ca flor3rмотров
+ дан80E2-40ls1ew4  ¬!tanя¦Snаt!     Sub m leя0 n fn
+ct02n
+
+ дан80E2-8#trпDb.O:m seleresultele3carom selecalseяяя03ca _dNels1lec!Db.Opeect *froLLLr:m sel 2ae  .e #r    р №   ssultl*e к    m sem set *from s   Requery дан@@@о.c fB9V
+
+
+================================================================================
+MODULE: Form_#prot_scheduler
+================================================================================
+Attribute VB_Name = "Form_#prot_scheduler"
+Attribute VB_Base = "0{7CD678F4-18C0-470F-89C8-F164059E8F0F}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Form_Load()
+Dim one As String
+Dim farm_lst() As String
+Dim x As Integer
+Dim rst As Recordset
+
+
+Me.prot_date.Value = Date
+Me.f_week.Value = DatePart("ww", Me.prot_date.Value)
+
+' Выставляем набор кнопок на текущую неделю
+Me.b_curr.Value = -1
+Me.b_next.Value = 0
+Me.b_prev.Value = 0
+
+' выставляем источник строк для списка программ защиты
+Me.prot_list.RowSource = "SELECT protection.id, flora.flora_name, protection.prot_phenology, protection.prot_object, protection.prot_farma, protection.prot_data FROM protection INNER JOIN flora ON protection.prot_subject = flora.id WHERE (((protection.prot_data)=" & Me.f_week.Value & ")); "
+Me.prot_list.Requery
+
+If Me.prot_list.ListCount <> 0 Then
+    Me.prot_list.Value = 0
+    
+    ' обновляем список куртин
+    Me.place_list.RowSource = "SELECT place.id, place.parent, place.place, place.content FROM place WHERE (((place.content)Like """ & "*" & Me.prot_list.Column(1) & "*" & """));"
+    Me.place_list.Requery
+    
+    ' +++++++++++++  Фаршируем комбо лист препаратов.
+        ' очищаем комбик препаратов
+    For x = 1 To Me.farm_list.ListCount
+        Me.farm_list.RemoveItem (0)
+    Next x
+    ' и вносим новые значения
+    
+    farm_lst = Split(Me.prot_list.Column(4), ";")
+    
+    For x = 0 To UBound(farm_lst)
+        farm_lst(x) = LTrim(farm_lst(x))
+        one = farm_lst(x)
+        Me.farm_list.AddItem (one)
+    Next x
+
+    Me.farm_list.Value = Null
+
+End If
+
+End Sub
+
+
+
+Private Sub place_list_DblClick(Cancel As Integer)
+Dim rst As Recordset
+Dim one As String
+Dim two As String
+Dim lft_part As String
+Dim rght_part As String
+Dim sumary As String
+Dim pos As Long
+Dim r_pos As Long
+Dim r_len As Long
+ 
+Dim Msg, Style, Title, Response
+Msg = "Вы хотите удалить выбранную куртину из списка?" & Chr(13) & Chr(10) & Chr(10) & "ВНИМАНИЕ! удаление данных из этого списка отразится на списке состава куртин."
+
+Style = vbYesNo
+Title = "Удаление куртины"
+
+
+Response = MsgBox(Msg, Style, Title)
+If Response = vbYes Then
+    
+    one = "SELECT place.id, place.content FROM place WHERE place.id=" & Me.place_list.Column(0) & ";"
+    Set rst = CurrentDb.OpenRecordset(one)
+    
+    flora_fnd = Me.prot_list.Column(1)
+    
+    pos = InStr(1, rst![content], flora_fnd) 'Определяем начало наименования
+    lft_part = Mid(rst![content], 1, pos - 1) 'Вырезаем левую часть
+    r_pos = pos + Len(flora_fnd) + 1 'Определяем начало правой части
+    r_len = Len(rst!content) - r_pos + 1 ' - 1  'определяем остаточную длинну
+
+    On Error Resume Next
+    
+    rght_part = Mid(rst![content], r_pos, r_len) 'вырезаем правую часть
+    sumary = lft_part & rght_part
+    
+    rst.Edit
+    rst![content] = sumary
+    rst.Update
+    
+    rst.Close
+    Set rst = Nothing
+    Me.place_list.Requery
+
+End If
+End Sub
+
+Private Sub prot_date_AfterUpdate()
+Me.f_week.Value = DatePart("ww", Me.prot_date.Value)
+End Sub
+
+Private Sub prot_date_Change()
+Me.f_week.Value = DatePart("ww", Me.prot_date.Value)
+End Sub
+
+
+
+
+Private Sub b_curr_Click()
+Dim one As String
+Dim farm_lst() As String
+Dim x As Integer
+
+' Выставляем набор кнопок на текущую неделю
+Me.b_curr.Value = -1
+Me.b_next.Value = 0
+Me.b_prev.Value = 0
+
+' выставляем источник строк для списка программ защиты
+Me.prot_list.RowSource = "SELECT protection.id, flora.flora_name, protection.prot_phenology, protection.prot_object, protection.prot_farma, protection.prot_data FROM protection INNER JOIN flora ON protection.prot_subject = flora.id WHERE (((protection.prot_data)=" & Me.f_week.Value & ")); "
+Me.prot_list.Requery
+
+If Me.prot_list.ListCount <> 0 Then
+    Me.prot_list.Value = 0
+
+    ' обновляем список куртин
+ Me.place_list.RowSource = "SELECT place.id, place.parent, place.place, place.content FROM place WHERE (((place.content)Like """ & "*" & Me.prot_list.Column(1) & "*" & """));"
+ Me.place_list.Requery
+    ' берем из списка программ защиты данные по препаратам
+    farm_lst = Split(Me.prot_list.Column(4), ";")
+    ' очищаем комбик препаратов
+    For x = 1 To Me.farm_list.ListCount
+        Me.farm_list.RemoveItem (0)
+    Next x
+    ' и вносим новые значения
+    For x = 0 To UBound(farm_lst)
+        farm_lst(x) = LTrim(farm_lst(x))
+        one = farm_lst(x)
+        Me.farm_list.AddItem (one)
+    Next x
+Else
+    ' обнуляем источники строк для списка куртин и фармы
+    Me.place_list.RowSource = ""
+    Me.place_list.Requery
+    
+    Me.farm_list.RowSource = ""
+    Me.farm_list.Value = Null
+    Me.farm_list.Requery
+    Me.prot_flora.Value = ""
+End If
+End Sub
+
+Private Sub b_next_Click()
+Dim one As String
+Dim farm_lst() As String
+Dim x As Integer
+
+' Выставляем набор кнопок на следующую неделю
+Me.b_curr.Value = 0
+Me.b_prev.Value = 0
+
+' выставляем источник строк для списка программ защиты
+Me.prot_list.RowSource = "SELECT protection.id, flora.flora_name, protection.prot_phenology, protection.prot_object, protection.prot_farma, protection.prot_data FROM protection INNER JOIN flora ON protection.prot_subject = flora.id WHERE (((protection.prot_data)=" & Me.f_week.Value + 1 & ")); "
+Me.prot_list.Requery
+
+If Me.prot_list.ListCount <> 0 Then
+    Me.prot_list.Value = 0
+
+    ' обновляем список куртин
+ Me.place_list.RowSource = "SELECT place.id, place.parent, place.place, place.content FROM place WHERE (((place.content)Like """ & "*" & Me.prot_list.Column(1) & "*" & """));"
+ Me.place_list.Requery
+    ' берем из списка программ защиты данные по препаратам
+    farm_lst = Split(Me.prot_list.Column(4), ";")
+    ' очищаем комбик препаратов
+    For x = 1 To Me.farm_list.ListCount
+        Me.farm_list.RemoveItem (0)
+    Next x
+    ' и вносим новые значения
+    For x = 0 To UBound(farm_lst)
+        farm_lst(x) = LTrim(farm_lst(x))
+        one = farm_lst(x)
+        Me.farm_list.AddItem (one)
+    Next x
+Else
+    ' обнуляем источники строк для списка куртин и фармы
+    Me.place_list.RowSource = ""
+    Me.place_list.Requery
+    
+    Me.farm_list.RowSource = ""
+    Me.farm_list.Value = Null
+    Me.farm_list.Requery
+    Me.prot_flora.Value = ""
+        
+End If
+End Sub
+
+Private Sub b_prev_Click()
+Dim one As String
+Dim farm_lst() As String
+Dim x As Integer
+
+' Выставляем набор кнопок на предыдущую неделю
+Me.b_curr.Value = 0
+Me.b_next.Value = 0
+
+' выставляем источник строк для списка программ защиты
+Me.prot_list.RowSource = "SELECT protection.id, flora.flora_name, protection.prot_phenology, protection.prot_object, protection.prot_farma, protection.prot_data FROM protection INNER JOIN flora ON protection.prot_subject = flora.id WHERE (((protection.prot_data)=" & Me.f_week.Value - 1 & ")); "
+Me.prot_list.Requery
+
+If Me.prot_list.ListCount <> 0 Then
+    Me.prot_list.Value = 0
+
+    ' обновляем список куртин
+ Me.place_list.RowSource = "SELECT place.id, place.parent, place.place, place.content FROM place WHERE (((place.content)Like """ & "*" & Me.prot_list.Column(1) & "*" & """));"
+ Me.place_list.Requery
+    ' берем из списка программ защиты данные по препаратам
+    farm_lst = Split(Me.prot_list.Column(4), ";")
+    ' очищаем комбик препаратов
+    For x = 1 To Me.farm_list.ListCount
+        Me.farm_list.RemoveItem (0)
+    Next x
+    ' и вносим новые значения
+    For x = 0 To UBound(farm_lst)
+        farm_lst(x) = LTrim(farm_lst(x))
+        one = farm_lst(x)
+        Me.farm_list.AddItem (one)
+    Next x
+Else
+    ' обнуляем источники строк для списка куртин и фармы
+    Me.place_list.RowSource = ""
+    Me.place_list.Requery
+    
+    Me.farm_list.RowSource = ""
+    Me.farm_list.Value = Null
+    Me.farm_list.Requery
+    Me.prot_flora.Value = ""
+End If
+
+End Sub
+
+
+
+
+
+Private Sub prot_list_AfterUpdate()
+Dim one As String
+Dim farm_lst() As String
+Dim x As Integer
+
+    ' обновляем список куртин
+    Me.place_list.RowSource = "SELECT place.id, place.parent, place.place, place.content FROM place WHERE (((place.content)Like """ & "*" & Me.prot_list.Column(1) & "*" & """));"
+    Me.place_list.Requery
+    ' берем из списка программ защиты данные по препаратам
+    farm_lst = Split(Me.prot_list.Column(4), ";")
+    ' очищаем комбик препаратов
+    For x = 1 To Me.farm_list.ListCount
+        Me.farm_list.RemoveItem (0)
+    Next x
+    ' и вносим новые значения
+    For x = 0 To UBound(farm_lst)
+        farm_lst(x) = LTrim(farm_lst(x))
+        one = farm_lst(x)
+        Me.farm_list.AddItem (one)
+    Next x
+
+    Me.farm_list.Value = Null
+    Me.prot_flora.Value = Me.prot_list.Column(1)
+End Sub
+
+
+
+
+
+
+
+'Private Sub sel_date_AfterUpdate()
+'Me.f_week.Value = DatePart("ww", Me.sel_date.Value)
+'End Sub
+'Private Sub sel_date_Change()
+'Me.f_week.Value = DatePart("ww", Me.sel_date.Value)
+'End Sub
+
+
+
+Private Sub Кнопка1963_Click()
+Dim x As Integer
+Dim rst As Recordset
+Dim one As String
+
+Dim Autor As Long
+Dim data_insp As Date
+Dim id_insp As String
+Dim location As String
+Dim place As Long
+Dim flora As String
+Dim farma_inv As String
+Dim farma_count As String
+Dim description As String
+Dim reason_tip As String
+Dim reason_short As String
+Dim reason As String
+Dim farma As String
+Dim reag1 As String
+Dim task As String
+Dim num_fild As Integer
+Dim farm_lst() As String
+
+Dim Msg, Style, Title, Response
+Msg = "Назначить плановые мероприятия?"    ' Define message.
+Style = vbYesNo
+Title = "Добавление задания"
+Response = MsgBox(Msg, Style, Title)
+
+If Response = vbYes Then
+    num_fild = 50
+    On Error GoTo err_autor
+    Autor = Me.autor_rec.Column(0)
+    data_insp = Format(Me.prot_date.Value, "dd/mm/yyyy")
+    flora = Me.prot_flora.Value
+    farma_inv = ""
+    farma_count = "Все"
+    description = "Плановые мероприятия согласно программы защиты"
+    reason_tip = "Другое"
+    reason_short = "Плановая обработка"
+    reason = "Плановая обработка"
+    
+    If Me.farm_list.Value Like "*+*" Then
+        farma = "Обработать смесью препаратов: "
+        farm_lst = Split(Me.farm_list.Column(0), "+")
+    
+        If Not (IsNull(farm_lst(0))) Then
+            reag1 = farm_lst(0)
+            one = "SELECT farma.n_p, farma.pref FROM farma WHERE ((farma_name)=""" & farm_lst(0) & """);"
+            Set rst = CurrentDb.OpenRecordset(one)
+            farma = farma & farm_lst(0) & " с нормой применения " & rst![n_p] & rst![pref] & " на 10 литров воды"
+            rst.Close
+            Set rst = Nothing
+        End If
+        If Not (IsNull(farm_lst(1))) Then
+            reag2 = farm_lst(1)
+            one = "SELECT farma.n_p, farma.pref FROM farma WHERE ((farma_name)=""" & farm_lst(1) & """);"
+            Set rst = CurrentDb.OpenRecordset(one)
+            farma = farma & " + " & farm_lst(1) & " с нормой применения " & rst![n_p] & rst![pref] & " на 10 литров воды"
+            rst.Close
+            Set rst = Nothing
+        End If
+        On Error GoTo sava
+        If Not (IsNull(farm_lst(2))) Then
+            reag3 = farm_lst(2)
+            one = "SELECT farma.n_p, farma.pref FROM farma WHERE ((farma_name)=""" & farm_lst(2) & """);"
+            Set rst = CurrentDb.OpenRecordset(one)
+            farma = farma & farm_lst(2) & " с нормой применения " & rst![n_p] & rst![pref] & " на 10 литров воды"
+            rst.Close
+            Set rst = Nothing
+        End If
+    Else
+        On Error GoTo ch_farma
+        reag1 = Me.farm_list.Value
+        one = "SELECT farma.n_p, farma.pref FROM farma WHERE ((farma_name)=""" & Me.farm_list.Value & """);"
+        Set rst = CurrentDb.OpenRecordset(one)
+        farma = "Обработать препаратом: " & Me.farm_list.Value & " с нормой применения " & rst![n_p] & rst![pref] & " на 10 литров воды"
+        rst.Close
+        Set rst = Nothing
+    End If
+    
+On Error GoTo un_err
+
+sava:
+    'Debug.Print farma
+    farma = farma & "."
+    task = ""
+    
+    ' открываем рекордсет на таблицу осмотров
+    Set rst = CurrentDb.OpenRecordset("select * from inspection")
+    
+    For x = 0 To Me.place_list.ListCount - 1
+        Me.place_list.Selected(x) = True
+        ' переформатируем дату, чтобы получить код для записи осмотра
+        id_insp = Replace(Format(Date, "yyyy/mm/dd"), ".", "")
+        id_insp = id_insp & num_fild
+        location = Me.place_list.Column(1)
+        place = Me.place_list.Column(0)
+            With rst ' записываем данные всех полей
+              .AddNew
+                ![Autor] = Autor
+                ![ID] = id_insp
+                ![data] = data_insp
+                ![location] = location
+                ![place] = place
+                ![flora] = flora
+                ![inv] = farma_inv
+                ![count] = farma_count
+                ![description] = description
+                ![reason_short] = reason_short
+                ![reason_tip] = reason_tip
+                ![reason] = reason
+                ![farma] = farma
+                ![reag1] = reag1
+                ![reag2] = reag2
+                ![reag3] = reag3
+                ![task] = task
+            On Error GoTo upg_err
+            .Update
+            End With
+        num_fild = num_fild + 1
+    Next x
+    
+    rst.Close
+    Set rst = Nothing
+End If
+Exit Sub
+
+ch_farma:
+Msg = "Сначала выберите препарат."
+Style = vbOKOnly
+Title = "Ошибка"
+Response = MsgBox(Msg, Style, Title)
+Exit Sub
+
+err_autor:
+Msg = "Выберите сотрудника, который назначает мероприятие."
+Style = vbOKOnly
+Title = "Ошибка"
+Response = MsgBox(Msg, Style, Title)
+Exit Sub
+
+upg_err:
+Msg = "Невозможно обновить данные из-за дублирующегося номера осмотра."
+Style = vbOKOnly
+Title = "Ошибка"
+Response = MsgBox(Msg, Style, Title)
+Exit Sub
+
+un_err:
+Msg = "Неизвестная ошибка."
+Style = vbOKOnly
+Title = "Ошибка"
+Response = MsgBox(Msg, Style, Title)
+End Sub
+
+
+================================================================================
+MODULE: Form_#of_report_form
+================================================================================
+Attribute VB_Name = "Form_#of_report_form"
+Attribute VB_Base = "0{488FA9AA-49C3-4158-904E-2924A6C9575A}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub cl_listbox()
+Dim x As Integer
+    For x = 1 To Me.list_recordset1.ListCount
+        Me.list_recordset1.RemoveItem (0)
+    Next x
+    For x = 1 To Me.list_recordset2.ListCount
+        Me.list_recordset2.RemoveItem (0)
+    Next x
+     Me.list1_total.Value = 0
+     Me.list2_total.Value = 0
+End Sub
+
+
+Private Sub list_recordset1_Click()
+Me.treat_date.Value = Me.list_recordset1.Column(0)
+Me.treat_loc.Value = Me.list_recordset1.Column(1)
+Me.treat_count.Value = Me.list_recordset1.Column(2)
+Me.record_code.Value = Me.list_recordset1.Column(3)
+Me.loc_code.Value = Me.list_recordset1.Column(4)
+End Sub
+
+Private Sub list_recordset1_DblClick(Cancel As Integer)
+Dim one As String
+' переносим данные во второй список
+    one = Me.list_recordset1.Column(0) & ";" & Me.list_recordset1.Column(1) & ";" & Me.list_recordset1.Column(2) & ";" & Me.list_recordset1.Column(3) & ";" & Me.list_recordset1.Column(4)
+    Me.list_recordset2.AddItem (one)
+' Добавляем значение ко  второй сумме
+    Me.list2_total.Value = Me.list2_total.Value + Me.list_recordset1.Column(2)
+' Вычитаем значение из первой суммы
+    Me.list1_total.Value = Me.list1_total.Value - Me.list_recordset1.Column(2)
+' Удаляем данные из первого списка
+    Me.list_recordset1.RemoveItem (Me.list_recordset1.ListIndex)
+        
+Me.Requery
+End Sub
+Private Sub list_recordset2_DblClick(Cancel As Integer)
+Dim one As String
+' возвращаем данные в первый список
+    one = Me.list_recordset2.Column(0) & ";" & Me.list_recordset2.Column(1) & ";" & Me.list_recordset2.Column(2) & ";" & Me.list_recordset2.Column(3) & ";" & Me.list_recordset2.Column(4)
+    Me.list_recordset1.AddItem (one)
+' Добавляем значение к первой сумме
+    Me.list1_total.Value = Me.list1_total.Value + Me.list_recordset2.Column(2)
+' Вычитаем значение из второй суммы
+    Me.list2_total.Value = Me.list2_total.Value - Me.list_recordset2.Column(2)
+' Удаляем данные из второго списка
+Me.list_recordset2.RemoveItem (Me.list_recordset2.ListIndex)
+        
+Me.Requery
+End Sub
+
+Private Sub Form_Load()
+cl_listbox
+Me.report_date.Value = "01.01.2023"
+
+End Sub
+
+
+
+Private Sub report_date_AfterUpdate()
+'Me.report_date.Value = "01/01/2023"
+Me.report_date.Value = "01.01.2023"
+End Sub
+
+' блок кода для смены данных по затратам
+Private Sub treat_count_AfterUpdate()
+Dim rst As Recordset
+Dim one As String
+Dim x As Integer
+Dim farma_total As Long
+
+Dim tmp_data As String
+Dim tmp_loc As String
+Dim tmp_reag_count As Long
+Dim tmp_record_code As String
+Dim tmp_loc_code As String
+
+' меняем запись в таблице
+one = "SELECT treat.count, treat.reag_count1, treat.tank FROM treat WHERE (((treat.count)=" & Me.record_code.Value & "));"
+Set rst = CurrentDb.OpenRecordset(one)
+rst.Edit
+    rst![reag_count1] = Me.treat_count.Value
+    rst![tank] = (Me.treat_count.Value * 10) / Me.farma_np.Value
+rst.Update
+rst.Close
+Set rst = Nothing
+
+farma_total = Me.list1_total.Value
+
+' меняем данные в списке
+For x = 0 To Me.list_recordset1.ListCount - 1
+    ' перебираем все строчки, пока не найдём нужную
+    Me.list_recordset1.Selected(x) = True
+    If Me.list_recordset1.Column(3) = Me.record_code.Value Then
+        ' берём значения из строчки в переменные
+        tmp_data = Me.list_recordset1.Column(0)
+        tmp_loc = Me.list_recordset1.Column(1)
+        tmp_reag_count = Me.treat_count.Value
+        tmp_record_code = Me.record_code.Value
+        tmp_loc_code = Me.list_recordset1.Column(4)
+        ' вычитаем из переменной затраченный препарат
+        farma_total = farma_total - Me.list_recordset1.Column(2)
+        ' Удаляем строчку
+        Me.list_recordset1.RemoveItem (x)
+        ' Формируем новую строчку и вносим её в лист
+        'one = rst![data] & ";" & rst![location] & ";" & rst![reag_count1] & ";" & rst![count] & ";" & rst![loc_сode]
+        one = tmp_data & ";" & tmp_loc & ";" & tmp_reag_count & ";" & tmp_record_code & ";" & tmp_loc_code
+        Me.list_recordset1.AddItem (one)
+        ' добавляем к переменной значение по расходу препарата
+        farma_total = farma_total + tmp_reag_count
+        Me.list1_total.Value = farma_total
+        ' выходим из программы
+        Exit Sub
+    End If
+Next x
+
+
+'' данные изменились. Удаляем старые значения
+'cl_listbox
+'
+'
+''===== берём новые данные
+'' Получаем список обработок
+'two = Replace(Format(Me.report_date.Value, "mm/dd/yyyy"), ".", "/")
+'one = "SELECT treat.data, treat.location, treat.reag_count1, treat.count, location.loc_сode FROM treat INNER JOIN location ON treat.location = location.location WHERE (((treat.data)>#" & two & "#) AND ((treat.reag1)=""" & Me.report_farma.Value & """) AND ((treat.[write-down])=False));"
+'Set rst = CurrentDb.OpenRecordset(one)
+'
+'If rst.RecordCount > 0 Then
+'    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+'    rst.MoveFirst ' вернуть указатель на начало рекордсета
+'
+'    For x = 1 To rst.RecordCount
+'        If Not rst.EOF Then  ' пока не достигнут конец сета
+'            one = rst![data] & ";" & rst![location] & ";" & rst![reag_count1] & ";" & rst![count] & ";" & rst![loc_сode]
+'            Me.list_recordset1.AddItem (one)
+'            farma_total = farma_total + rst![reag_count1]
+'            rst.MoveNext
+'        End If
+'    Next x
+'End If
+'
+'Me.Requery
+'Me.list1_total.Value = farma_total
+'Me.list2_total.Value = 0
+
+End Sub
+
+
+Private Sub report_farma_AfterUpdate()
+Dim rst As Recordset
+Dim one As String
+Dim x As Integer
+Dim two As String
+Dim farma_total As Long
+Dim loc_code() As String
+
+farma_total = 0
+
+' данные изменились. Удаляем старые значения
+cl_listbox
+
+'Получаем данные по препарату
+one = "SELECT farma.farma_code, farma.sklad_name, farma.sklad_pref, farma.n_p FROM farma WHERE (((farma.farma_name)=""" & Me.report_farma.Value & """));"
+Set rst = CurrentDb.OpenRecordset(one)
+' вносим на форму
+    Me.sklad_code.Value = rst![farma_code]
+    Me.sklad_name.Value = rst![sklad_name]
+    Me.sklad_pref.Value = rst![sklad_pref]
+    Me.farma_np.Value = rst![n_p]
+rst.Close
+Set rst = Nothing
+
+ 
+' Получаем список обработок
+two = Replace(Format(Me.report_date.Value, "mm/dd/yyyy"), ".", "/")
+'one = "SELECT treat.count, treat.location, treat.reag1, treat.reag_count1 FROM treat WHERE (((treat.data)>#" & two & "#) AND ((treat.reag1)=""" & Me.report_farma.Value & """) AND ((treat.[write-down])=False));"
+one = "SELECT treat.data, treat.location, treat.reag_count1, treat.count, location.loc_сode FROM treat INNER JOIN location ON treat.location = location.location WHERE (((treat.data)>#" & two & "#) AND ((treat.reag1)=""" & Me.report_farma.Value & """) AND ((treat.[write-down])=False));"
+Set rst = CurrentDb.OpenRecordset(one)
+
+If rst.RecordCount > 0 Then
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    rst.MoveFirst ' вернуть указатель на начало рекордсета
+
+    For x = 1 To rst.RecordCount
+        If Not rst.EOF Then  ' пока не достигнут конец сета
+            one = rst![data] & ";" & rst![location] & ";" & rst![reag_count1] & ";" & rst![count] & ";" & rst![loc_сode]
+            Me.list_recordset1.AddItem (one)
+            farma_total = farma_total + rst![reag_count1]
+            rst.MoveNext
+        End If
+    Next x
+End If
+
+Me.Requery
+Me.list1_total.Value = farma_total
+Me.list2_total.Value = 0
+End Sub
+
+
+'====================>  Создание временной Таблицы для отчёта
+Private Sub Кнопка331_Click()
+Const strTableName As String = "farma_report" 'Название таблицы
+Dim tbl As TableDef       'объект таблица
+Dim idx As Index          'объект индекс
+Dim fld As Field          'объект поле
+Dim rst As Recordset      'объект набор записей
+Dim i As Integer          'счетчик дней
+Dim rst2 As Recordset
+Dim one As String
+ 
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate As String
+Dim rs As Recordset
+
+Dim coment As Boolean
+
+coment = False
+
+
+'Удаяем прошлое
+    On Error Resume Next
+    CurrentDb.TableDefs.Delete strTableName
+    Err.Clear
+    
+On Error GoTo CreateWeekDaysTableErr
+ 
+'создание объектной переменной таблицы, полей и индекса в ней
+    Set tbl = CurrentDb.CreateTableDef(strTableName)
+    With tbl
+    
+        .Fields.Append tbl.CreateField("place_id", dbText, 20)
+        .Fields.Append tbl.CreateField("farma_count", dbLong)
+    End With
+'Фактическое добавление таблицы из объектной переменной описанной выше
+    CurrentDb.TableDefs.Append tbl
+ 
+'Заполнение таблицы данными
+    Set rst = CurrentDb.OpenRecordset(strTableName, dbOpenDynaset)
+    With rst
+        For i = 0 To (Me.list_recordset2.ListCount) - 1 'цикл для всех записей из второго списка
+            Me.list_recordset2.Selected(i) = True ' Перебираем по порядку все данные из списка методом последовательного выбора.
+    
+            .AddNew
+                !place_ID = Me.list_recordset2.Column(4)
+                !farma_count = Me.list_recordset2.Column(2)
+            .Update
+        
+        If Me.list_recordset2.Column(1) = "СК-5" Then
+            coment = True
+        End If
+        
+        ' ставим отметку, что запись списана.
+        one = "SELECT treat.[write-down] FROM treat WHERE (((treat.count)=" & Me.list_recordset2.Column(3) & "));"
+        Set rst2 = CurrentDb.OpenRecordset(one)
+        rst2.Edit
+            rst2![write-down] = True
+        rst2.Update
+        rst2.Close
+        Set rst2 = Nothing
+
+        
+    Next i
+    End With
+
+'Код Араика
+
+ 
+' Закидываем данные в эксель
+
+strTmplate = "Z:\BD_SPS\Template\farma_report.xltm"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+Set rs = CurrentDb.OpenRecordset("SELECT farma_report.place_id, Sum(farma_report.farma_count) AS [Sum-farma_count] FROM farma_report GROUP BY farma_report.place_id;")
+rs.MoveLast
+rs.MoveFirst
+
+    
+xlApp.Range("A1") = ("Отчёт о расходовании ТМЦ №" & Me.num_dog.Value & " от " & Me.data_dog.Value)
+xlApp.Range("A3") = (Me.sklad_code.Value)
+xlApp.Range("B3") = (Me.sklad_name.Value)
+xlApp.Range("C3") = (Me.sklad_pref.Value)
+If Me.sklad_pref.Value = "кг" Or Me.sklad_pref.Value = "л; дм3" Then
+        xlApp.Range("D3") = Me.list2_total.Value / 1000
+    Else
+        xlApp.Range("D3") = Me.list2_total.Value
+End If
+
+For x = 1 To rs.RecordCount
+    name_cell_A = "A" & CStr(5 + x)
+    name_cell_B = "B" & CStr(5 + x)
+    name_cell_D = "D" & CStr(5 + x)
+    
+    xlApp.Range(name_cell_A) = CStr(x)
+    xlApp.Range(name_cell_B) = rs![place_ID]
+    If Me.sklad_pref.Value = "кг" Or Me.sklad_pref.Value = "л; дм3" Then
+        xlApp.Range(name_cell_D) = rs![Sum-farma_count] / 1000
+        Else
+            xlApp.Range(name_cell_D) = rs![Sum-farma_count]
+    End If
+
+rs.MoveNext
+Next x
+
+rs.Close
+Set rs = Nothing
+
+If coment Then
+xlApp.Range("A29") = "Примечание: Собственные нужды = СК-5"
+End If
+
+
+xlApp.Visible = True
+
+Set xlApp = Nothing
+Set xlBook = Nothing
+ 
+CreateWeekDaysTableBye:
+    On Error Resume Next
+    Set idx = Nothing
+    Set tbl = Nothing
+    rst.Close
+    Set rst = Nothing
+    rs.Close
+    Set rs = Nothing
+
+    Exit Sub
+ 
+CreateWeekDaysTableErr:
+    MsgBox "Произошла ошибка при выполнении процедуры " & _
+    "[CreateWeekDaysTable] :" & vbCrLf & _
+    Err.description & vbCrLf & _
+    "Номер ошибки = " & Err.Number, vbCritical
+    Resume CreateWeekDaysTableBye
+End Sub
+
+Private Sub Кнопка518_Click()
+        For i = 0 To (Me.list_recordset2.ListCount) - 1 'цикл для всех записей из второго списка
+            Me.list_recordset2.Selected(i) = True ' Перебираем по порядку все данные из списка методом последовательного выбора.
+            
+            ' ставим отметку, что запись списана.
+            one = "SELECT treat.[write-down] FROM treat WHERE (((treat.count)=" & Me.list_recordset2.Column(3) & "));"
+            Set rst = CurrentDb.OpenRecordset(one)
+            rst.Edit
+                rst![write-down] = False
+            rst.Update
+            rst.Close
+            Set rst = Nothing
+        Next i
+End Sub
+
+
+================================================================================
+MODULE: JsonConverter
+================================================================================
+Attribute VB_Name = "JsonConverter"
+''
+' VBA-JSON v2.3.1
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
+'
+' JSON Converter for VBA
+'
+' Errors:
+' 10001 - JSON parse error
+'
+' @class JsonConverter
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+'
+' Based originally on vba-json (with extensive changes)
+' BSD license included below
+'
+' JSONLib, http://code.google.com/p/vba-json/
+'
+' Copyright (c) 2013, Ryo Yokoyama
+' All rights reserved.
+'
+' Redistribution and use in source and binary forms, with or without
+' modification, are permitted provided that the following conditions are met:
+'     * Redistributions of source code must retain the above copyright
+'       notice, this list of conditions and the following disclaimer.
+'     * Redistributions in binary form must reproduce the above copyright
+'       notice, this list of conditions and the following disclaimer in the
+'       documentation and/or other materials provided with the distribution.
+'     * Neither the name of the <organization> nor the
+'       names of its contributors may be used to endorse or promote products
+'       derived from this software without specific prior written permission.
+'
+' THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+' ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+' WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+' DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+' DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+' (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+' LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+' ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+' (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+' SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Option Explicit
+
+' === VBA-UTC Headers
+#If Mac Then
+
+#If VBA7 Then
+
+' 64-bit Mac (2016)
+Private Declare PtrSafe Function utc_popen Lib "/usr/lib/libc.dylib" Alias "popen" _
+    (ByVal utc_Command As String, ByVal utc_Mode As String) As LongPtr
+Private Declare PtrSafe Function utc_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" _
+    (ByVal utc_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function utc_fread Lib "/usr/lib/libc.dylib" Alias "fread" _
+    (ByVal utc_Buffer As String, ByVal utc_Size As LongPtr, ByVal utc_Number As LongPtr, ByVal utc_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function utc_feof Lib "/usr/lib/libc.dylib" Alias "feof" _
+    (ByVal utc_File As LongPtr) As LongPtr
+
+#Else
+
+' 32-bit Mac
+Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" _
+    (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
+Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+    (ByVal utc_File As Long) As Long
+Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" _
+    (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
+Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" _
+    (ByVal utc_File As Long) As Long
+
+#End If
+
+#ElseIf VBA7 Then
+
+' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724421.aspx
+' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724949.aspx
+' http://msdn.microsoft.com/en-us/library/windows/desktop/ms725485.aspx
+Private Declare PtrSafe Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
+Private Declare PtrSafe Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
+Private Declare PtrSafe Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
+
+#Else
+
+Private Declare Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
+Private Declare Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
+Private Declare Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
+
+#End If
+
+#If Mac Then
+
+#If VBA7 Then
+Private Type utc_ShellResult
+    utc_Output As String
+    utc_ExitCode As LongPtr
+End Type
+
+#Else
+
+Private Type utc_ShellResult
+    utc_Output As String
+    utc_ExitCode As Long
+End Type
+
+#End If
+
+#Else
+
+Private Type utc_SYSTEMTIME
+    utc_wYear As Integer
+    utc_wMonth As Integer
+    utc_wDayOfWeek As Integer
+    utc_wDay As Integer
+    utc_wHour As Integer
+    utc_wMinute As Integer
+    utc_wSecond As Integer
+    utc_wMilliseconds As Integer
+End Type
+
+Private Type utc_TIME_ZONE_INFORMATION
+    utc_Bias As Long
+    utc_StandardName(0 To 31) As Integer
+    utc_StandardDate As utc_SYSTEMTIME
+    utc_StandardBias As Long
+    utc_DaylightName(0 To 31) As Integer
+    utc_DaylightDate As utc_SYSTEMTIME
+    utc_DaylightBias As Long
+End Type
+
+#End If
+' === End VBA-UTC
+
+Private Type json_Options
+    ' VBA only stores 15 significant digits, so any numbers larger than that are truncated
+    ' This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
+    ' See: http://support.microsoft.com/kb/269370
+    '
+    ' By default, VBA-JSON will use String for numbers longer than 15 characters that contain only digits
+    ' to override set `JsonConverter.JsonOptions.UseDoubleForLargeNumbers = True`
+    UseDoubleForLargeNumbers As Boolean
+
+    ' The JSON standard requires object keys to be quoted (" or '), use this option to allow unquoted keys
+    AllowUnquotedKeys As Boolean
+
+    ' The solidus (/) is not required to be escaped, use this option to escape them as \/ in ConvertToJson
+    EscapeSolidus As Boolean
+End Type
+Public JsonOptions As json_Options
+
+' ============================================= '
+' Public Methods
+' ============================================= '
+
+''
+' Convert JSON string to object (Dictionary/Collection)
+'
+' @method ParseJson
+' @param {String} json_String
+' @return {Object} (Dictionary or Collection)
+' @throws 10001 - JSON parse error
+''
+Public Function ParseJson(ByVal JsonString As String) As Object
+    Dim json_Index As Long
+    json_Index = 1
+
+    ' Remove vbCr, vbLf, and vbTab from json_String
+    JsonString = VBA.Replace(VBA.Replace(VBA.Replace(JsonString, VBA.vbCr, ""), VBA.vbLf, ""), VBA.vbTab, "")
+
+    json_SkipSpaces JsonString, json_Index
+    Select Case VBA.Mid$(JsonString, json_Index, 1)
+    Case "{"
+        Set ParseJson = json_ParseObject(JsonString, json_Index)
+    Case "["
+        Set ParseJson = json_ParseArray(JsonString, json_Index)
+    Case Else
+        ' Error: Invalid JSON string
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(JsonString, json_Index, "Expecting '{' or '['")
+    End Select
+End Function
+
+''
+' Convert object (Dictionary/Collection/Array) to JSON
+'
+' @method ConvertToJson
+' @param {Variant} JsonValue (Dictionary, Collection, or Array)
+' @param {Integer|String} Whitespace "Pretty" print json with given number of spaces per indentation (Integer) or given string
+' @return {String}
+''
+Public Function ConvertToJson(ByVal JsonValue As Variant, Optional ByVal Whitespace As Variant, Optional ByVal json_CurrentIndentation As Long = 0) As String
+    Dim json_Buffer As String
+    Dim json_BufferPosition As Long
+    Dim json_BufferLength As Long
+    Dim json_Index As Long
+    Dim json_LBound As Long
+    Dim json_UBound As Long
+    Dim json_IsFirstItem As Boolean
+    Dim json_Index2D As Long
+    Dim json_LBound2D As Long
+    Dim json_UBound2D As Long
+    Dim json_IsFirstItem2D As Boolean
+    Dim json_Key As Variant
+    Dim json_Value As Variant
+    Dim json_DateStr As String
+    Dim json_Converted As String
+    Dim json_SkipItem As Boolean
+    Dim json_PrettyPrint As Boolean
+    Dim json_Indentation As String
+    Dim json_InnerIndentation As String
+
+    json_LBound = -1
+    json_UBound = -1
+    json_IsFirstItem = True
+    json_LBound2D = -1
+    json_UBound2D = -1
+    json_IsFirstItem2D = True
+    json_PrettyPrint = Not IsMissing(Whitespace)
+
+    Select Case VBA.VarType(JsonValue)
+    Case VBA.vbNull
+        ConvertToJson = "null"
+    Case VBA.vbDate
+        ' Date
+        json_DateStr = ConvertToIso(VBA.CDate(JsonValue))
+
+        ConvertToJson = """" & json_DateStr & """"
+    Case VBA.vbString
+        ' String (or large number encoded as string)
+        If Not JsonOptions.UseDoubleForLargeNumbers And json_StringIsLargeNumber(JsonValue) Then
+            ConvertToJson = JsonValue
+        Else
+            ConvertToJson = """" & json_Encode(JsonValue) & """"
+        End If
+    Case VBA.vbBoolean
+        If JsonValue Then
+            ConvertToJson = "true"
+        Else
+            ConvertToJson = "false"
+        End If
+    Case VBA.vbArray To VBA.vbArray + VBA.vbByte
+        If json_PrettyPrint Then
+            If VBA.VarType(Whitespace) = VBA.vbString Then
+                json_Indentation = VBA.String$(json_CurrentIndentation + 1, Whitespace)
+                json_InnerIndentation = VBA.String$(json_CurrentIndentation + 2, Whitespace)
+            Else
+                json_Indentation = VBA.Space$((json_CurrentIndentation + 1) * Whitespace)
+                json_InnerIndentation = VBA.Space$((json_CurrentIndentation + 2) * Whitespace)
+            End If
+        End If
+
+        ' Array
+        json_BufferAppend json_Buffer, "[", json_BufferPosition, json_BufferLength
+
+        On Error Resume Next
+
+        json_LBound = LBound(JsonValue, 1)
+        json_UBound = UBound(JsonValue, 1)
+        json_LBound2D = LBound(JsonValue, 2)
+        json_UBound2D = UBound(JsonValue, 2)
+
+        If json_LBound >= 0 And json_UBound >= 0 Then
+            For json_Index = json_LBound To json_UBound
+                If json_IsFirstItem Then
+                    json_IsFirstItem = False
+                Else
+                    ' Append comma to previous line
+                    json_BufferAppend json_Buffer, ",", json_BufferPosition, json_BufferLength
+                End If
+
+                If json_LBound2D >= 0 And json_UBound2D >= 0 Then
+                    ' 2D Array
+                    If json_PrettyPrint Then
+                        json_BufferAppend json_Buffer, vbNewLine, json_BufferPosition, json_BufferLength
+                    End If
+                    json_BufferAppend json_Buffer, json_Indentation & "[", json_BufferPosition, json_BufferLength
+
+                    For json_Index2D = json_LBound2D To json_UBound2D
+                        If json_IsFirstItem2D Then
+                            json_IsFirstItem2D = False
+                        Else
+                            json_BufferAppend json_Buffer, ",", json_BufferPosition, json_BufferLength
+                        End If
+
+                        json_Converted = ConvertToJson(JsonValue(json_Index, json_Index2D), Whitespace, json_CurrentIndentation + 2)
+
+                        ' For Arrays/Collections, undefined (Empty/Nothing) is treated as null
+                        If json_Converted = "" Then
+                            ' (nest to only check if converted = "")
+                            If json_IsUndefined(JsonValue(json_Index, json_Index2D)) Then
+                                json_Converted = "null"
+                            End If
+                        End If
+
+                        If json_PrettyPrint Then
+                            json_Converted = vbNewLine & json_InnerIndentation & json_Converted
+                        End If
+
+                        json_BufferAppend json_Buffer, json_Converted, json_BufferPosition, json_BufferLength
+                    Next json_Index2D
+
+                    If json_PrettyPrint Then
+                        json_BufferAppend json_Buffer, vbNewLine, json_BufferPosition, json_BufferLength
+                    End If
+
+                    json_BufferAppend json_Buffer, json_Indentation & "]", json_BufferPosition, json_BufferLength
+                    json_IsFirstItem2D = True
+                Else
+                    ' 1D Array
+                    json_Converted = ConvertToJson(JsonValue(json_Index), Whitespace, json_CurrentIndentation + 1)
+
+                    ' For Arrays/Collections, undefined (Empty/Nothing) is treated as null
+                    If json_Converted = "" Then
+                        ' (nest to only check if converted = "")
+                        If json_IsUndefined(JsonValue(json_Index)) Then
+                            json_Converted = "null"
+                        End If
+                    End If
+
+                    If json_PrettyPrint Then
+                        json_Converted = vbNewLine & json_Indentation & json_Converted
+                    End If
+
+                    json_BufferAppend json_Buffer, json_Converted, json_BufferPosition, json_BufferLength
+                End If
+            Next json_Index
+        End If
+
+        On Error GoTo 0
+
+        If json_PrettyPrint Then
+            json_BufferAppend json_Buffer, vbNewLine, json_BufferPosition, json_BufferLength
+
+            If VBA.VarType(Whitespace) = VBA.vbString Then
+                json_Indentation = VBA.String$(json_CurrentIndentation, Whitespace)
+            Else
+                json_Indentation = VBA.Space$(json_CurrentIndentation * Whitespace)
+            End If
+        End If
+
+        json_BufferAppend json_Buffer, json_Indentation & "]", json_BufferPosition, json_BufferLength
+
+        ConvertToJson = json_BufferToString(json_Buffer, json_BufferPosition)
+
+    ' Dictionary or Collection
+    Case VBA.vbObject
+        If json_PrettyPrint Then
+            If VBA.VarType(Whitespace) = VBA.vbString Then
+                json_Indentation = VBA.String$(json_CurrentIndentation + 1, Whitespace)
+            Else
+                json_Indentation = VBA.Space$((json_CurrentIndentation + 1) * Whitespace)
+            End If
+        End If
+
+        ' Dictionary
+        If VBA.TypeName(JsonValue) = "Dictionary" Then
+            json_BufferAppend json_Buffer, "{", json_BufferPosition, json_BufferLength
+            For Each json_Key In JsonValue.Keys
+                ' For Objects, undefined (Empty/Nothing) is not added to object
+                json_Converted = ConvertToJson(JsonValue(json_Key), Whitespace, json_CurrentIndentation + 1)
+                If json_Converted = "" Then
+                    json_SkipItem = json_IsUndefined(JsonValue(json_Key))
+                Else
+                    json_SkipItem = False
+                End If
+
+                If Not json_SkipItem Then
+                    If json_IsFirstItem Then
+                        json_IsFirstItem = False
+                    Else
+                        json_BufferAppend json_Buffer, ",", json_BufferPosition, json_BufferLength
+                    End If
+
+                    If json_PrettyPrint Then
+                        json_Converted = vbNewLine & json_Indentation & """" & json_Key & """: " & json_Converted
+                    Else
+                        json_Converted = """" & json_Key & """:" & json_Converted
+                    End If
+
+                    json_BufferAppend json_Buffer, json_Converted, json_BufferPosition, json_BufferLength
+                End If
+            Next json_Key
+
+            If json_PrettyPrint Then
+                json_BufferAppend json_Buffer, vbNewLine, json_BufferPosition, json_BufferLength
+
+                If VBA.VarType(Whitespace) = VBA.vbString Then
+                    json_Indentation = VBA.String$(json_CurrentIndentation, Whitespace)
+                Else
+                    json_Indentation = VBA.Space$(json_CurrentIndentation * Whitespace)
+                End If
+            End If
+
+            json_BufferAppend json_Buffer, json_Indentation & "}", json_BufferPosition, json_BufferLength
+
+        ' Collection
+        ElseIf VBA.TypeName(JsonValue) = "Collection" Then
+            json_BufferAppend json_Buffer, "[", json_BufferPosition, json_BufferLength
+            For Each json_Value In JsonValue
+                If json_IsFirstItem Then
+                    json_IsFirstItem = False
+                Else
+                    json_BufferAppend json_Buffer, ",", json_BufferPosition, json_BufferLength
+                End If
+
+                json_Converted = ConvertToJson(json_Value, Whitespace, json_CurrentIndentation + 1)
+
+                ' For Arrays/Collections, undefined (Empty/Nothing) is treated as null
+                If json_Converted = "" Then
+                    ' (nest to only check if converted = "")
+                    If json_IsUndefined(json_Value) Then
+                        json_Converted = "null"
+                    End If
+                End If
+
+                If json_PrettyPrint Then
+                    json_Converted = vbNewLine & json_Indentation & json_Converted
+                End If
+
+                json_BufferAppend json_Buffer, json_Converted, json_BufferPosition, json_BufferLength
+            Next json_Value
+
+            If json_PrettyPrint Then
+                json_BufferAppend json_Buffer, vbNewLine, json_BufferPosition, json_BufferLength
+
+                If VBA.VarType(Whitespace) = VBA.vbString Then
+                    json_Indentation = VBA.String$(json_CurrentIndentation, Whitespace)
+                Else
+                    json_Indentation = VBA.Space$(json_CurrentIndentation * Whitespace)
+                End If
+            End If
+
+            json_BufferAppend json_Buffer, json_Indentation & "]", json_BufferPosition, json_BufferLength
+        End If
+
+        ConvertToJson = json_BufferToString(json_Buffer, json_BufferPosition)
+    Case VBA.vbInteger, VBA.vbLong, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency, VBA.vbDecimal
+        ' Number (use decimals for numbers)
+        ConvertToJson = VBA.Replace(JsonValue, ",", ".")
+    Case Else
+        ' vbEmpty, vbError, vbDataObject, vbByte, vbUserDefinedType
+        ' Use VBA's built-in to-string
+        On Error Resume Next
+        ConvertToJson = JsonValue
+        On Error GoTo 0
+    End Select
+End Function
+
+' ============================================= '
+' Private Functions
+' ============================================= '
+
+Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Dictionary
+    Dim json_Key As String
+    Dim json_NextChar As String
+
+    Set json_ParseObject = New Dictionary
+    json_SkipSpaces json_String, json_Index
+    If VBA.Mid$(json_String, json_Index, 1) <> "{" Then
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '{'")
+    Else
+        json_Index = json_Index + 1
+
+        Do
+            json_SkipSpaces json_String, json_Index
+            If VBA.Mid$(json_String, json_Index, 1) = "}" Then
+                json_Index = json_Index + 1
+                Exit Function
+            ElseIf VBA.Mid$(json_String, json_Index, 1) = "," Then
+                json_Index = json_Index + 1
+                json_SkipSpaces json_String, json_Index
+            End If
+
+            json_Key = json_ParseKey(json_String, json_Index)
+            json_NextChar = json_Peek(json_String, json_Index)
+            If json_NextChar = "[" Or json_NextChar = "{" Then
+                Set json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
+            Else
+                json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
+            End If
+        Loop
+    End If
+End Function
+
+Private Function json_ParseArray(json_String As String, ByRef json_Index As Long) As Collection
+    Set json_ParseArray = New Collection
+
+    json_SkipSpaces json_String, json_Index
+    If VBA.Mid$(json_String, json_Index, 1) <> "[" Then
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '['")
+    Else
+        json_Index = json_Index + 1
+
+        Do
+            json_SkipSpaces json_String, json_Index
+            If VBA.Mid$(json_String, json_Index, 1) = "]" Then
+                json_Index = json_Index + 1
+                Exit Function
+            ElseIf VBA.Mid$(json_String, json_Index, 1) = "," Then
+                json_Index = json_Index + 1
+                json_SkipSpaces json_String, json_Index
+            End If
+
+            json_ParseArray.Add json_ParseValue(json_String, json_Index)
+        Loop
+    End If
+End Function
+
+Private Function json_ParseValue(json_String As String, ByRef json_Index As Long) As Variant
+    json_SkipSpaces json_String, json_Index
+    Select Case VBA.Mid$(json_String, json_Index, 1)
+    Case "{"
+        Set json_ParseValue = json_ParseObject(json_String, json_Index)
+    Case "["
+        Set json_ParseValue = json_ParseArray(json_String, json_Index)
+    Case """", "'"
+        json_ParseValue = json_ParseString(json_String, json_Index)
+    Case Else
+        If VBA.Mid$(json_String, json_Index, 4) = "true" Then
+            json_ParseValue = True
+            json_Index = json_Index + 4
+        ElseIf VBA.Mid$(json_String, json_Index, 5) = "false" Then
+            json_ParseValue = False
+            json_Index = json_Index + 5
+        ElseIf VBA.Mid$(json_String, json_Index, 4) = "null" Then
+            json_ParseValue = Null
+            json_Index = json_Index + 4
+        ElseIf VBA.InStr("+-0123456789", VBA.Mid$(json_String, json_Index, 1)) Then
+            json_ParseValue = json_ParseNumber(json_String, json_Index)
+        Else
+            Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
+        End If
+    End Select
+End Function
+
+Private Function json_ParseString(json_String As String, ByRef json_Index As Long) As String
+    Dim json_Quote As String
+    Dim json_Char As String
+    Dim json_Code As String
+    Dim json_Buffer As String
+    Dim json_BufferPosition As Long
+    Dim json_BufferLength As Long
+
+    json_SkipSpaces json_String, json_Index
+
+    ' Store opening quote to look for matching closing quote
+    json_Quote = VBA.Mid$(json_String, json_Index, 1)
+    json_Index = json_Index + 1
+
+    Do While json_Index > 0 And json_Index <= Len(json_String)
+        json_Char = VBA.Mid$(json_String, json_Index, 1)
+
+        Select Case json_Char
+        Case "\"
+            ' Escaped string, \\, or \/
+            json_Index = json_Index + 1
+            json_Char = VBA.Mid$(json_String, json_Index, 1)
+
+            Select Case json_Char
+            Case """", "\", "/", "'"
+                json_BufferAppend json_Buffer, json_Char, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "b"
+                json_BufferAppend json_Buffer, vbBack, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "f"
+                json_BufferAppend json_Buffer, vbFormFeed, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "n"
+                json_BufferAppend json_Buffer, vbCrLf, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "r"
+                json_BufferAppend json_Buffer, vbCr, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "t"
+                json_BufferAppend json_Buffer, vbTab, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "u"
+                ' Unicode character escape (e.g. \u00a9 = Copyright)
+                json_Index = json_Index + 1
+                json_Code = VBA.Mid$(json_String, json_Index, 4)
+                json_BufferAppend json_Buffer, VBA.ChrW(VBA.val("&h" + json_Code)), json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 4
+            End Select
+        Case json_Quote
+            json_ParseString = json_BufferToString(json_Buffer, json_BufferPosition)
+            json_Index = json_Index + 1
+            Exit Function
+        Case Else
+            json_BufferAppend json_Buffer, json_Char, json_BufferPosition, json_BufferLength
+            json_Index = json_Index + 1
+        End Select
+    Loop
+End Function
+
+Private Function json_ParseNumber(json_String As String, ByRef json_Index As Long) As Variant
+    Dim json_Char As String
+    Dim json_Value As String
+    Dim json_IsLargeNumber As Boolean
+
+    json_SkipSpaces json_String, json_Index
+
+    Do While json_Index > 0 And json_Index <= Len(json_String)
+        json_Char = VBA.Mid$(json_String, json_Index, 1)
+
+        If VBA.InStr("+-0123456789.eE", json_Char) Then
+            ' Unlikely to have massive number, so use simple append rather than buffer here
+            json_Value = json_Value & json_Char
+            json_Index = json_Index + 1
+        Else
+            ' Excel only stores 15 significant digits, so any numbers larger than that are truncated
+            ' This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
+            ' See: http://support.microsoft.com/kb/269370
+            '
+            ' Fix: Parse -> String, Convert -> String longer than 15/16 characters containing only numbers and decimal points -> Number
+            ' (decimal doesn't factor into significant digit count, so if present check for 15 digits + decimal = 16)
+            json_IsLargeNumber = IIf(InStr(json_Value, "."), Len(json_Value) >= 17, Len(json_Value) >= 16)
+            If Not JsonOptions.UseDoubleForLargeNumbers And json_IsLargeNumber Then
+                json_ParseNumber = json_Value
+            Else
+                ' VBA.Val does not use regional settings, so guard for comma is not needed
+                json_ParseNumber = VBA.val(json_Value)
+            End If
+            Exit Function
+        End If
+    Loop
+End Function
+
+Private Function json_ParseKey(json_String As String, ByRef json_Index As Long) As String
+    ' Parse key with single or double quotes
+    If VBA.Mid$(json_String, json_Index, 1) = """" Or VBA.Mid$(json_String, json_Index, 1) = "'" Then
+        json_ParseKey = json_ParseString(json_String, json_Index)
+    ElseIf JsonOptions.AllowUnquotedKeys Then
+        Dim json_Char As String
+        Do While json_Index > 0 And json_Index <= Len(json_String)
+            json_Char = VBA.Mid$(json_String, json_Index, 1)
+            If (json_Char <> " ") And (json_Char <> ":") Then
+                json_ParseKey = json_ParseKey & json_Char
+                json_Index = json_Index + 1
+            Else
+                Exit Do
+            End If
+        Loop
+    Else
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '""' or '''")
+    End If
+
+    ' Check for colon and skip if present or throw if not present
+    json_SkipSpaces json_String, json_Index
+    If VBA.Mid$(json_String, json_Index, 1) <> ":" Then
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting ':'")
+    Else
+        json_Index = json_Index + 1
+    End If
+End Function
+
+Private Function json_IsUndefined(ByVal json_Value As Variant) As Boolean
+    ' Empty / Nothing -> undefined
+    Select Case VBA.VarType(json_Value)
+    Case VBA.vbEmpty
+        json_IsUndefined = True
+    Case VBA.vbObject
+        Select Case VBA.TypeName(json_Value)
+        Case "Empty", "Nothing"
+            json_IsUndefined = True
+        End Select
+    End Select
+End Function
+
+Private Function json_Encode(ByVal json_Text As Variant) As String
+    ' Reference: http://www.ietf.org/rfc/rfc4627.txt
+    ' Escape: ", \, /, backspace, form feed, line feed, carriage return, tab
+    Dim json_Index As Long
+    Dim json_Char As String
+    Dim json_AscCode As Long
+    Dim json_Buffer As String
+    Dim json_BufferPosition As Long
+    Dim json_BufferLength As Long
+
+    For json_Index = 1 To VBA.Len(json_Text)
+        json_Char = VBA.Mid$(json_Text, json_Index, 1)
+        json_AscCode = VBA.AscW(json_Char)
+
+        ' When AscW returns a negative number, it returns the twos complement form of that number.
+        ' To convert the twos complement notation into normal binary notation, add 0xFFF to the return result.
+        ' https://support.microsoft.com/en-us/kb/272138
+        If json_AscCode < 0 Then
+            json_AscCode = json_AscCode + 65536
+        End If
+
+        ' From spec, ", \, and control characters must be escaped (solidus is optional)
+
+        Select Case json_AscCode
+        Case 34
+            ' " -> 34 -> \"
+            json_Char = "\"""
+        Case 92
+            ' \ -> 92 -> \\
+            json_Char = "\\"
+        Case 47
+            ' / -> 47 -> \/ (optional)
+            If JsonOptions.EscapeSolidus Then
+                json_Char = "\/"
+            End If
+        Case 8
+            ' backspace -> 8 -> \b
+            json_Char = "\b"
+        Case 12
+            ' form feed -> 12 -> \f
+            json_Char = "\f"
+        Case 10
+            ' line feed -> 10 -> \n
+            json_Char = "\n"
+        Case 13
+            ' carriage return -> 13 -> \r
+            json_Char = "\r"
+        Case 9
+            ' tab -> 9 -> \t
+            json_Char = "\t"
+        Case 0 To 31, 127 To 65535
+            ' Non-ascii characters -> convert to 4-digit hex
+            json_Char = "\u" & VBA.Right$("0000" & VBA.Hex$(json_AscCode), 4)
+        End Select
+
+        json_BufferAppend json_Buffer, json_Char, json_BufferPosition, json_BufferLength
+    Next json_Index
+
+    json_Encode = json_BufferToString(json_Buffer, json_BufferPosition)
+End Function
+
+Private Function json_Peek(json_String As String, ByVal json_Index As Long, Optional json_NumberOfCharacters As Long = 1) As String
+    ' "Peek" at the next number of characters without incrementing json_Index (ByVal instead of ByRef)
+    json_SkipSpaces json_String, json_Index
+    json_Peek = VBA.Mid$(json_String, json_Index, json_NumberOfCharacters)
+End Function
+
+Private Sub json_SkipSpaces(json_String As String, ByRef json_Index As Long)
+    ' Increment index to skip over spaces
+    Do While json_Index > 0 And json_Index <= VBA.Len(json_String) And VBA.Mid$(json_String, json_Index, 1) = " "
+        json_Index = json_Index + 1
+    Loop
+End Sub
+
+Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
+    ' Check if the given string is considered a "large number"
+    ' (See json_ParseNumber)
+
+    Dim json_Length As Long
+    Dim json_CharIndex As Long
+    json_Length = VBA.Len(json_String)
+
+    ' Length with be at least 16 characters and assume will be less than 100 characters
+    If json_Length >= 16 And json_Length <= 100 Then
+        Dim json_CharCode As String
+
+        json_StringIsLargeNumber = True
+
+        For json_CharIndex = 1 To json_Length
+            json_CharCode = VBA.Asc(VBA.Mid$(json_String, json_CharIndex, 1))
+            Select Case json_CharCode
+            ' Look for .|0-9|E|e
+            Case 46, 48 To 57, 69, 101
+                ' Continue through characters
+            Case Else
+                json_StringIsLargeNumber = False
+                Exit Function
+            End Select
+        Next json_CharIndex
+    End If
+End Function
+
+Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String)
+    ' Provide detailed parse error message, including details of where and what occurred
+    '
+    ' Example:
+    ' Error parsing JSON:
+    ' {"abcde":True}
+    '          ^
+    ' Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['
+
+    Dim json_StartIndex As Long
+    Dim json_StopIndex As Long
+
+    ' Include 10 characters before and after error (if possible)
+    json_StartIndex = json_Index - 10
+    json_StopIndex = json_Index + 10
+    If json_StartIndex <= 0 Then
+        json_StartIndex = 1
+    End If
+    If json_StopIndex > VBA.Len(json_String) Then
+        json_StopIndex = VBA.Len(json_String)
+    End If
+
+    json_ParseErrorMessage = "Error parsing JSON:" & VBA.vbNewLine & _
+                             VBA.Mid$(json_String, json_StartIndex, json_StopIndex - json_StartIndex + 1) & VBA.vbNewLine & _
+                             VBA.Space$(json_Index - json_StartIndex) & "^" & VBA.vbNewLine & _
+                             ErrorMessage
+End Function
+
+Private Sub json_BufferAppend(ByRef json_Buffer As String, _
+                              ByRef json_Append As Variant, _
+                              ByRef json_BufferPosition As Long, _
+                              ByRef json_BufferLength As Long)
+    ' VBA can be slow to append strings due to allocating a new string for each append
+    ' Instead of using the traditional append, allocate a large empty string and then copy string at append position
+    '
+    ' Example:
+    ' Buffer: "abc  "
+    ' Append: "def"
+    ' Buffer Position: 3
+    ' Buffer Length: 5
+    '
+    ' Buffer position + Append length > Buffer length -> Append chunk of blank space to buffer
+    ' Buffer: "abc       "
+    ' Buffer Length: 10
+    '
+    ' Put "def" into buffer at position 3 (0-based)
+    ' Buffer: "abcdef    "
+    '
+    ' Approach based on cStringBuilder from vbAccelerator
+    ' http://www.vbaccelerator.com/home/VB/Code/Techniques/RunTime_Debug_Tracing/VB6_Tracer_Utility_zip_cStringBuilder_cls.asp
+    '
+    ' and clsStringAppend from Philip Swannell
+    ' https://github.com/VBA-tools/VBA-JSON/pull/82
+
+    Dim json_AppendLength As Long
+    Dim json_LengthPlusPosition As Long
+
+    json_AppendLength = VBA.Len(json_Append)
+    json_LengthPlusPosition = json_AppendLength + json_BufferPosition
+
+    If json_LengthPlusPosition > json_BufferLength Then
+        ' Appending would overflow buffer, add chunk
+        ' (double buffer length or append length, whichever is bigger)
+        Dim json_AddedLength As Long
+        json_AddedLength = IIf(json_AppendLength > json_BufferLength, json_AppendLength, json_BufferLength)
+
+        json_Buffer = json_Buffer & VBA.Space$(json_AddedLength)
+        json_BufferLength = json_BufferLength + json_AddedLength
+    End If
+
+    ' Note: Namespacing with VBA.Mid$ doesn't work properly here, throwing compile error:
+    ' Function call on left-hand side of assignment must return Variant or Object
+    Mid$(json_Buffer, json_BufferPosition + 1, json_AppendLength) = CStr(json_Append)
+    json_BufferPosition = json_BufferPosition + json_AppendLength
+End Sub
+
+Private Function json_BufferToString(ByRef json_Buffer As String, ByVal json_BufferPosition As Long) As String
+    If json_BufferPosition > 0 Then
+        json_BufferToString = VBA.Left$(json_Buffer, json_BufferPosition)
+    End If
+End Function
+
+''
+' VBA-UTC v1.0.6
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-UtcConverter
+'
+' UTC/ISO 8601 Converter for VBA
+'
+' Errors:
+' 10011 - UTC parsing error
+' 10012 - UTC conversion error
+' 10013 - ISO 8601 parsing error
+' 10014 - ISO 8601 conversion error
+'
+' @module UtcConverter
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
+' (Declarations moved to top)
+
+' ============================================= '
+' Public Methods
+' ============================================= '
+
+''
+' Parse UTC date to local date
+'
+' @method ParseUtc
+' @param {Date} UtcDate
+' @return {Date} Local date
+' @throws 10011 - UTC parsing error
+''
+Public Function ParseUtc(utc_UtcDate As Date) As Date
+    On Error GoTo utc_ErrorHandling
+
+#If Mac Then
+    ParseUtc = utc_ConvertDate(utc_UtcDate)
+#Else
+    Dim utc_TimeZoneInfo As utc_TIME_ZONE_INFORMATION
+    Dim utc_LocalDate As utc_SYSTEMTIME
+
+    utc_GetTimeZoneInformation utc_TimeZoneInfo
+    utc_SystemTimeToTzSpecificLocalTime utc_TimeZoneInfo, utc_DateToSystemTime(utc_UtcDate), utc_LocalDate
+
+    ParseUtc = utc_SystemTimeToDate(utc_LocalDate)
+#End If
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.description
+End Function
+
+''
+' Convert local date to UTC date
+'
+' @method ConvertToUrc
+' @param {Date} utc_LocalDate
+' @return {Date} UTC date
+' @throws 10012 - UTC conversion error
+''
+Public Function ConvertToUtc(utc_LocalDate As Date) As Date
+    On Error GoTo utc_ErrorHandling
+
+#If Mac Then
+    ConvertToUtc = utc_ConvertDate(utc_LocalDate, utc_ConvertToUtc:=True)
+#Else
+    Dim utc_TimeZoneInfo As utc_TIME_ZONE_INFORMATION
+    Dim utc_UtcDate As utc_SYSTEMTIME
+
+    utc_GetTimeZoneInformation utc_TimeZoneInfo
+    utc_TzSpecificLocalTimeToSystemTime utc_TimeZoneInfo, utc_DateToSystemTime(utc_LocalDate), utc_UtcDate
+
+    ConvertToUtc = utc_SystemTimeToDate(utc_UtcDate)
+#End If
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.description
+End Function
+
+''
+' Parse ISO 8601 date string to local date
+'
+' @method ParseIso
+' @param {Date} utc_IsoString
+' @return {Date} Local date
+' @throws 10013 - ISO 8601 parsing error
+''
+Public Function ParseIso(utc_IsoString As String) As Date
+    On Error GoTo utc_ErrorHandling
+
+    Dim utc_Parts() As String
+    Dim utc_DateParts() As String
+    Dim utc_TimeParts() As String
+    Dim utc_OffsetIndex As Long
+    Dim utc_HasOffset As Boolean
+    Dim utc_NegativeOffset As Boolean
+    Dim utc_OffsetParts() As String
+    Dim utc_Offset As Date
+
+    utc_Parts = VBA.Split(utc_IsoString, "T")
+    utc_DateParts = VBA.Split(utc_Parts(0), "-")
+    ParseIso = VBA.DateSerial(VBA.CInt(utc_DateParts(0)), VBA.CInt(utc_DateParts(1)), VBA.CInt(utc_DateParts(2)))
+
+    If UBound(utc_Parts) > 0 Then
+        If VBA.InStr(utc_Parts(1), "Z") Then
+            utc_TimeParts = VBA.Split(VBA.Replace(utc_Parts(1), "Z", ""), ":")
+        Else
+            utc_OffsetIndex = VBA.InStr(1, utc_Parts(1), "+")
+            If utc_OffsetIndex = 0 Then
+                utc_NegativeOffset = True
+                utc_OffsetIndex = VBA.InStr(1, utc_Parts(1), "-")
+            End If
+
+            If utc_OffsetIndex > 0 Then
+                utc_HasOffset = True
+                utc_TimeParts = VBA.Split(VBA.Left$(utc_Parts(1), utc_OffsetIndex - 1), ":")
+                utc_OffsetParts = VBA.Split(VBA.Right$(utc_Parts(1), Len(utc_Parts(1)) - utc_OffsetIndex), ":")
+
+                Select Case UBound(utc_OffsetParts)
+                Case 0
+                    utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), 0, 0)
+                Case 1
+                    utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), VBA.CInt(utc_OffsetParts(1)), 0)
+                Case 2
+                    ' VBA.Val does not use regional settings, use for seconds to avoid decimal/comma issues
+                    utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), VBA.CInt(utc_OffsetParts(1)), Int(VBA.val(utc_OffsetParts(2))))
+                End Select
+
+                If utc_NegativeOffset Then: utc_Offset = -utc_Offset
+            Else
+                utc_TimeParts = VBA.Split(utc_Parts(1), ":")
+            End If
+        End If
+
+        Select Case UBound(utc_TimeParts)
+        Case 0
+            ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), 0, 0)
+        Case 1
+            ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), VBA.CInt(utc_TimeParts(1)), 0)
+        Case 2
+            ' VBA.Val does not use regional settings, use for seconds to avoid decimal/comma issues
+            ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), VBA.CInt(utc_TimeParts(1)), Int(VBA.val(utc_TimeParts(2))))
+        End Select
+
+        ParseIso = ParseUtc(ParseIso)
+
+        If utc_HasOffset Then
+            ParseIso = ParseIso - utc_Offset
+        End If
+    End If
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.description
+End Function
+
+''
+' Convert local date to ISO 8601 string
+'
+' @method ConvertToIso
+' @param {Date} utc_LocalDate
+' @return {Date} ISO 8601 string
+' @throws 10014 - ISO 8601 conversion error
+''
+Public Function ConvertToIso(utc_LocalDate As Date) As String
+    On Error GoTo utc_ErrorHandling
+
+    ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.description
+End Function
+
+' ============================================= '
+' Private Functions
+' ============================================= '
+
+#If Mac Then
+
+Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As Boolean = False) As Date
+    Dim utc_ShellCommand As String
+    Dim utc_Result As utc_ShellResult
+    Dim utc_Parts() As String
+    Dim utc_DateParts() As String
+    Dim utc_TimeParts() As String
+
+    If utc_ConvertToUtc Then
+        utc_ShellCommand = "date -ur `date -jf '%Y-%m-%d %H:%M:%S' " & _
+            "'" & VBA.Format$(utc_Value, "yyyy-mm-dd HH:mm:ss") & "' " & _
+            " +'%s'` +'%Y-%m-%d %H:%M:%S'"
+    Else
+        utc_ShellCommand = "date -jf '%Y-%m-%d %H:%M:%S %z' " & _
+            "'" & VBA.Format$(utc_Value, "yyyy-mm-dd HH:mm:ss") & " +0000' " & _
+            "+'%Y-%m-%d %H:%M:%S'"
+    End If
+
+    utc_Result = utc_ExecuteInShell(utc_ShellCommand)
+
+    If utc_Result.utc_Output = "" Then
+        Err.Raise 10015, "UtcConverter.utc_ConvertDate", "'date' command failed"
+    Else
+        utc_Parts = Split(utc_Result.utc_Output, " ")
+        utc_DateParts = Split(utc_Parts(0), "-")
+        utc_TimeParts = Split(utc_Parts(1), ":")
+
+        utc_ConvertDate = DateSerial(utc_DateParts(0), utc_DateParts(1), utc_DateParts(2)) + _
+            TimeSerial(utc_TimeParts(0), utc_TimeParts(1), utc_TimeParts(2))
+    End If
+End Function
+
+Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResult
+#If VBA7 Then
+    Dim utc_File As LongPtr
+    Dim utc_Read As LongPtr
+#Else
+    Dim utc_File As Long
+    Dim utc_Read As Long
+#End If
+
+    Dim utc_Chunk As String
+
+    On Error GoTo utc_ErrorHandling
+    utc_File = utc_popen(utc_ShellCommand, "r")
+
+    If utc_File = 0 Then: Exit Function
+
+    Do While utc_feof(utc_File) = 0
+        utc_Chunk = VBA.Space$(50)
+        utc_Read = CLng(utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File))
+        If utc_Read > 0 Then
+            utc_Chunk = VBA.Left$(utc_Chunk, CLng(utc_Read))
+            utc_ExecuteInShell.utc_Output = utc_ExecuteInShell.utc_Output & utc_Chunk
+        End If
+    Loop
+
+utc_ErrorHandling:
+    utc_ExecuteInShell.utc_ExitCode = CLng(utc_pclose(utc_File))
+End Function
+
+#Else
+
+Private Function utc_DateToSystemTime(utc_Value As Date) As utc_SYSTEMTIME
+    utc_DateToSystemTime.utc_wYear = VBA.Year(utc_Value)
+    utc_DateToSystemTime.utc_wMonth = VBA.Month(utc_Value)
+    utc_DateToSystemTime.utc_wDay = VBA.Day(utc_Value)
+    utc_DateToSystemTime.utc_wHour = VBA.Hour(utc_Value)
+    utc_DateToSystemTime.utc_wMinute = VBA.Minute(utc_Value)
+    utc_DateToSystemTime.utc_wSecond = VBA.Second(utc_Value)
+    utc_DateToSystemTime.utc_wMilliseconds = 0
+End Function
+
+Private Function utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
+    utc_SystemTimeToDate = DateSerial(utc_Value.utc_wYear, utc_Value.utc_wMonth, utc_Value.utc_wDay) + _
+        TimeSerial(utc_Value.utc_wHour, utc_Value.utc_wMinute, utc_Value.utc_wSecond)
+End Function
+
+#End If
+
+
+================================================================================
+MODULE: Form_work_book
+================================================================================
+Attribute VB_Name = "Form_work_book"
+Attribute VB_Base = "0{9D380480-D5A3-4979-A561-393AD410ECA2}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub Выключатель178_Click()
+
+If Me.Filter <> "" Then
+    Me.Filter = Me.Filter & " AND ([treat].[write-down]=0)"
+Else
+    Me.Filter = "([treat].[write-down]=0)"
+End If
+
+Me.FilterOn = True
+
+
+End Sub
+
+Private Sub Кнопка127_Click()
+Me.Filter = ""
+End Sub
+
+Private Sub Кнопка144_Click()
+Dim one As String
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate As String
+Dim rs As Recordset
+
+
+strTmplate = "Z:\BD_SPS\Template\treet_report.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+one = "SELECT treat.data, treat.Treat_type, treat.reag1, treat.reag_count1, farma.pref, inspection.description FROM (treat INNER JOIN farma ON treat.reag1 = farma.farma_name) INNER JOIN inspection ON treat.reason = inspection.id;"
+
+If Me.Filter <> "" Then
+    one = Left(one, Len(one) - 1)
+    one = one & " WHERE " & Me.Filter & ";"
+End If
+
+    Me.OrderBy = "[treat].[data]"
+
+    one = Left(one, Len(one) - 1)
+    one = one & " Order By " & Me.OrderBy & ";"
+
+Set rs = CurrentDb.OpenRecordset(one)
+
+xlApp.Range("B2") = (Me.location.Value)
+xlApp.Range("D2") = (Me.flora.Value)
+
+xlApp.Range("A4").CopyFromRecordset rs
+
+xlApp.Visible = True
+
+rs.Close
+Set rst = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+
+End Sub
+
+Private Sub Кнопка57_Click()
+Dim one As String
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate As String
+Dim rs As Recordset
+
+
+
+strTmplate = "Z:\BD_SPS\Template\work_book.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+
+one = "SELECT treat.data, treat.location, treat.flora, treat.reason, treat.Treat_type, treat.reag1, treat.reag_count1, farma.pref, treat.person, treat.result FROM farma INNER JOIN (inspection INNER JOIN treat ON inspection.id = treat.reason) ON farma.farma_name = treat.reag1 ;"
+
+If Me.Filter <> "" Then
+    one = Left(one, Len(one) - 1)
+    one = one & "WHERE " & Me.Filter & ";"
+End If
+
+'    Me.OrderBy = "[treat].[data]"
+
+    one = Left(one, Len(one) - 1)
+    one = one & " Order By " & Me.OrderBy & ";"
+
+Set rs = CurrentDb.OpenRecordset(one)
+
+
+xlApp.Range("A3").CopyFromRecordset rs
+
+xlApp.Visible = True
+
+rs.Close
+Set rst = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+
+End Sub
+
+Private Sub Комбинированная160_AfterUpdate()
+
+End Sub
+
+
+================================================================================
+MODULE: Form_Inspection ADD
+================================================================================
+Attribute VB_Name = "Form_Inspection ADD"
+Attribute VB_Base = "0{2788EC2B-EFBB-4D73-A6EA-AC2098C07E4B}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+Public num As Long
+
+Private Sub New_rec()
+Me.prev_insp.Value = ""
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = ""
+Me.farma_combo1.Visible = False
+Me.farma_txt1.Visible = False
+Me.farma_ad1.Visible = False
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+Me.farma_txt2.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_fild.Value = ""
+Me.task_fild.Value = ""
+Me.task_combo.Value = ""
+Me.location_combo.Value = ""
+Me.place_list.RowSource = ""
+Me.place_fild.Value = ""
+Me.place_ID.Value = ""
+Me.Flora_combo.Value = ""
+Me.inv_fild.Value = ""
+Me.count_fild.Value = ""
+Me.description_fild.Value = ""
+Me.reason_type.Value = ""
+Me.reason_combo.Value = ""
+Me.reason_fild.Value = ""
+Me.reason_post.Value = 0
+Me.reason_ad.Value = 0
+
+Me.link_inv.Value = ""
+Me.link_count.Value = ""
+Me.reason_fild.Value = ""
+Me.link_des.Value = ""
+Me.link_reason.Value = ""
+For x = 1 To Me.link_list.ListCount
+    Me.link_list.RemoveItem (0)
+Next x
+Me.prev_insp.Value = ""
+
+
+reason_type1_Click
+End Sub
+
+'============================================================================================
+'============================================================== Раздел выбора препарата  ====
+'============================================================================================
+Private Sub farma_metod1_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 1, -1, 0)
+Next
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = True
+Me.farma_ad1.Value = False
+Me.farma_ad2.Visible = False
+Me.farma_ad2.Value = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod2_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 2, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = True
+Me.farma_ad1.Value = False
+Me.farma_ad2.Visible = False
+Me.farma_ad2.Value = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod3_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 3, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "По листу"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Caption = "Под корень"
+Me.farma_txt2.Visible = True
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo2.Visible = True
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod4_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 4, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "По листу"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Caption = "Под корень"
+Me.farma_txt2.Visible = True
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo2.Visible = True
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod5_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 5, -1, 0)
+Next
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """гранулированное""" & ") or ((farma.use)=" & """водорастворимое""" & ") or ((farma.use)=" & """жидкое""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod6_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 6, -1, 0)
+Next
+Me.farma_txt1.Visible = False
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = ""
+Me.farma_combo1.Visible = False
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+
+Me.farma_fild.Value = "Проведение обработки не целесообразно."
+
+End Sub
+
+
+Private Sub farma_ad1_Click()
+Dim one As String
+
+If Me.farma_ad1.Value = -1 Then
+    Me.farma_txt2.Caption = "Препарат"
+    Me.farma_txt2.Visible = True
+
+    Me.farma_ad2.Value = False
+    Me.farma_ad2.Visible = True
+    
+    one = IIf(Me.farma_metod1.Value = -1, """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ", """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ")
+    
+    Me.farma_combo2.Value = ""
+    Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & one
+    Me.farma_combo2.Visible = True
+Else
+    Me.farma_txt2.Visible = False
+    Me.farma_txt3.Visible = False
+    Me.farma_ad2.Visible = False
+    Me.farma_combo2.Value = ""
+    Me.farma_combo2.RowSource = ""
+    Me.farma_combo2.Visible = False
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = ""
+    Me.farma_combo3.Visible = False
+End If
+
+End Sub
+
+Private Sub farma_ad2_Click()
+Dim one As String
+
+If Me.farma_ad2.Value = -1 Then
+    Me.farma_txt3.Caption = "Препарат"
+    Me.farma_txt3.Visible = True
+    one = IIf(Me.farma_metod1.Value = -1, """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ", """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ")
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & one
+    Me.farma_combo3.Visible = True
+Else
+    Me.farma_txt3.Visible = False
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = ""
+    Me.farma_combo3.Visible = False
+
+End If
+End Sub
+
+Private Sub farma_combo1_AfterUpdate()
+Dim one As String
+
+If Me.farma_metod1 Then
+    Me.farma_fild.Value = "Обработать по листу препаратом: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+    ElseIf Me.farma_metod2 Then
+        Me.farma_fild.Value = "Пролить под корень препаратом: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+        ElseIf Me.farma_metod3 Then
+            Me.farma_fild.Value = "Провести комплексную обработку. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды; "
+            ElseIf Me.farma_metod4 Then
+                Me.farma_fild.Value = "Назначить курс. Троекратно, с интервалом в 7-10 дней. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                ElseIf Me.farma_metod5 Then
+                    If Me.farma_combo1.Column(3) = "гранулированное" Then
+                        Me.farma_fild.Value = "Внести препарат: " & Me.farma_combo1.Column(0) & " согласно инструкции с заделкой в почву."
+                            Else
+                                Me.farma_fild.Value = "Внести препарат: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+                    End If
+End If
+End Sub
+Private Sub farma_combo2_AfterUpdate()
+If Me.farma_metod1 Then
+    Me.farma_fild.Value = "Обработать по листу смесью препаратов: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. + " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+        ElseIf Me.farma_metod2 Then
+            Me.farma_fild.Value = "Пролить под корень смесью препаратов: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. + " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+                ElseIf Me.farma_metod3 Then
+                    Me.farma_fild.Value = "Провести комплексную обработку. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды; "
+                    Me.farma_fild.Value = Me.farma_fild.Value & "Под корень: " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+                        ElseIf Me.farma_metod4 Then
+                            Me.farma_fild.Value = "Назначить курс. Троекратно, с интервалом в 7-10 дней. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                            Me.farma_fild.Value = Me.farma_fild.Value & "Под корень: " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+End If
+End Sub
+Private Sub farma_combo3_AfterUpdate()
+    Me.farma_fild.Value = Me.farma_fild.Value & " + " & Me.farma_combo3.Column(0) & " с н.п. " & Me.farma_combo3.Column(1) & Me.farma_combo3.Column(2) & " на 10 литров воды"
+End Sub
+
+
+
+'============================================================================================================
+''====================== После выбора растения включается поиск похожего случая в актах осмотра.
+'============================================================================================================
+Private Sub flora_combo_AfterUpdate() ' После выбора куртины и растения включается поиск похожего случая в актах осмотра.
+Dim rst As Recordset
+Dim one As String
+Dim x As Long
+
+' удаляем старое значение
+For x = 0 To Me.link_list.ListCount - 1
+    Me.link_list.RemoveItem (0)
+Next x
+
+one = "SELECT inspection.data, place.place, inspection.inv, inspection.Count, inspection.description, inspection.id, inspection.reason, inspection.reason_tip FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.location)=""" & Me.location_combo.Column(0) & """) AND ((inspection.flora)=""" & Me.Flora_combo.Value & """)) ORDER BY inspection.data;"
+Set rst = CurrentDb.OpenRecordset(one)
+
+' Если нет записей (указатель одновременно на начале и конце файла), то игнорировать
+If Not (rst.BOF And rst.EOF) Then
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    rst.MoveFirst
+    
+    For x = 1 To rst.RecordCount
+        ' формируем строчку в список
+        one = rst![data] & ";" & rst![place] & ";" & rst![inv] & ";" & rst![count] & ";" & rst![description] & ";" & rst![ID] & ";" & rst![reason] & ";" & rst![reason_tip]
+        Me.link_list.AddItem (one)
+         rst.MoveNext
+    Next x
+End If
+
+rst.Close
+Set rst = Nothing
+
+End Sub
+Private Sub link_list_Click()
+Me.link_inv.Value = Me.link_list.Column(2)
+Me.link_count.Value = Me.link_list.Column(3)
+Me.link_des.Value = Me.link_list.Column(4)
+Me.link_id.Value = Me.link_list.Column(5)
+Me.link_reason.Value = Me.link_list.Column(6)
+Me.link_reason_type.Value = Me.link_list.Column(7)
+End Sub
+Private Sub Кнопка1574_Click()
+Me.prev_insp.Value = Me.link_id.Value
+
+Me.reason_type.Value = Me.link_reason_type.Value
+Me.reason_fild.Value = Me.link_reason.Value
+
+
+Me.description_fild.Value = Me.description_fild.Value & " " & Me.link_des.Value
+
+End Sub
+'===================================
+
+
+
+
+
+
+'==============================================================
+'======================Новый раздел выбора агроприёмов.
+'==============================================================
+Private Sub task_combo_AfterUpdate()
+
+If Me.task_add.Value = -1 Then
+    Me.task_fild.Value = IIf(Me.task_fild.Value <> "", Me.task_fild.Value & " + " & Me.task_combo.Column(1), Me.task_combo.Column(1))
+Else
+    Me.task_fild.Value = Me.task_combo.Column(1)
+End If
+
+End Sub
+'==============================================================
+'==============================================================
+
+
+'===============================================================
+'' ===================== новый раздел выбора причины
+'===============================================================
+
+Private Sub reason_type1_Click()
+Me.reason_type1.Value = 1
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 0
+Me.reason_combo.RowSource = "SELECT pest.pest, pest.pest_lat FROM pest;"
+Me.reason_combo.ListItemsEditForm = "f_pest"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type2_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 1
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 0
+
+Me.reason_combo.RowSource = "SELECT sickness.sickness, sickness.sickness_lat FROM sickness;"
+Me.reason_combo.ListItemsEditForm = "f_sickness"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type3_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 1
+Me.reason_type4.Value = 0
+
+Me.reason_combo.RowSource = "SELECT physiology.physiology, physiology.physiology_des FROM physiology;"
+Me.reason_combo.ListItemsEditForm = "f_physiology"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type4_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 1
+
+Me.reason_combo.RowSource = "SELECT other.other, other.other_des FROM other;"
+Me.reason_combo.ListItemsEditForm = "f_other"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+
+Private Sub reason_combo_AfterUpdate()
+Dim reason_txt As String
+ 
+If Me.reason_type1 Then
+    reason_txt = IIf(Me.reason_post, "Последствия повреждения вредителем: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1), "Вредитель: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1))
+    Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+    If Not (Me.reason_type.Value Like "Вредители") Then
+        Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Вредители", "Вредители")
+    End If
+    Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+        ElseIf Me.reason_type2 Then
+            reason_txt = IIf(Me.reason_post, "Последствия перенесённого заболевания: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1), "Заболевание: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1))
+            Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+            If Not (Me.reason_type.Value Like "Заболевания") Then
+                Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Заболевания", "Заболевания")
+            End If
+            Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+    
+            ElseIf Me.reason_type3 Then
+                reason_txt = Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1)
+                Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+                If Not (Me.reason_type.Value Like "Физиология") Then
+                        Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Физиология", "Физиология")
+                End If
+                Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+                
+                ElseIf Me.reason_type4 Then
+                    reason_txt = Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1)
+                    Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+                    If Not (Me.reason_type.Value Like "Другое") Then
+                        Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Другое", "Другое")
+                    End If
+                    Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+End If
+End Sub
+'==============================================================
+'==============================================================
+
+
+
+
+
+
+
+'============================================================================================
+' =================================================== Инициация формы  ======================
+'============================================================================================
+Private Sub Form_Load()
+
+Me.location_combo.Value = ""
+Me.place_list.RowSource = ""
+Me.place_fild.Value = ""
+
+Me.reason_post.Value = False
+Me.reason_ad.Value = False
+Me.reason_fild.Value = ""
+Me.reason_combo.RowSource = "SELECT pest.pest, pest.pest_lat FROM pest;"
+Me.reason_combo.ListItemsEditForm = "f_pest"
+
+farma_metod1_Click
+reason_type1_Click
+
+End Sub
+
+
+
+
+
+Private Sub data_fild_AfterUpdate() ' после выбора даты смотрим количество записей на данное число. выставляем счётчик в нужное значение
+Dim rst As Recordset
+Dim one As String
+Dim two As String
+Dim tri As String
+
+'tri = Replace(data_fild.Value, ".", "/")
+
+one = Format(data_fild.Value, "mm/dd/yyyy")
+two = Replace(one, ".", "/")
+tri = "SELECT * FROM inspection WHERE (((inspection.data)=#" & two & "#));"
+
+Set rst = CurrentDb.OpenRecordset(tri)
+' Если нет записей (указатель одновременно на начале и конце файла), то игнорировать
+If Not (rst.BOF And rst.EOF) Then
+    two = rst.RecordCount
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    two = rst.RecordCount
+End If
+
+
+Me.num_fild.Value = rst.RecordCount + 1 ' В поле номер записываем следующий порядковый номер
+ 
+Set rst = Nothing
+
+Me.f_inspect.Requery
+
+End Sub
+
+
+
+
+
+'============================================================================================
+' ======================================================= Раздел куртины и объекта ==========
+'============================================================================================
+
+Private Sub location_combo_AfterUpdate()
+' после выбора объекта выставляем значение источника строк для списка куртин
+Me.place_list.RowSource = "SELECT place.ID, place.place, place.plan FROM place WHERE (((place.parent)=""" & Me.location_combo.Text & """" & "));"
+End Sub
+Private Sub place_list_Click()
+' переносим данные из списка в поле куртины
+Me.place_fild.Value = Me.place_list.Column(1)
+Me.place_ID.Value = Me.place_list.Column(0)
+End Sub
+
+
+' в поле обработок добавляет рекомендации по расходу.
+Private Sub Кнопка1615_Click()
+Me.farma_fild.Value = Me.farma_fild.Value & " По 10 литров на растение."
+End Sub
+Private Sub Кнопка1621_Click()
+Me.farma_fild.Value = Me.farma_fild.Value & " По 20 литров на растение."
+End Sub
+Private Sub Кнопка1624_Click()
+Me.farma_fild.Value = Me.farma_fild.Value & " По 30 литров на растение."
+End Sub
+Private Sub Кнопка1627_Click()
+Me.farma_fild.Value = Me.farma_fild.Value & " По 40 литров на растение."
+End Sub
+
+
+
+
+Private Sub Кнопка492_Click()
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate As String
+Dim rs As Recordset
+Dim one, two As String
+Dim fnt As String, txt As String
+
+
+
+one = Format(data_fild.Value, "mm/dd/yyyy")
+two = Replace(one, ".", "/")
+
+strTmplate = "Z:\BD_SPS\Template\insp_report.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+' строка ниже для выборки всех записей, которые не имеют пометки выполнено
+'one = "SELECT inspection.id, inspection.location, place.place, inspection.flora, inspection.inv, inspection.count, inspection.description, inspection.reason_tip, inspection.reason, inspection.farma, inspection.task FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.done) = False)) ORDER BY inspection.location;"
+
+' эта выборка для записей, от конкретного числа
+one = "SELECT inspection.id, inspection.location, place.place, inspection.flora, inspection.inv, inspection.count, inspection.description, inspection.reason_tip, inspection.reason, inspection.farma, inspection.task FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.data) =#" & two & "#)) ORDER BY inspection.location;"
+Set rs = CurrentDb.OpenRecordset(one)
+
+
+xlApp.Range("A2").CopyFromRecordset rs
+
+
+With xlApp.ActiveSheet.PageSetup
+    '.CenterHeader = "Акт обследования №00 от " & Now()
+    fnt = """Calibri"""
+    txt = "Акт обследования №00 от " & Now()
+    .CenterHeader = "&" & fnt & "&20&B" & txt
+End With
+
+
+xlApp.Visible = True
+
+rs.Close
+Set rs = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+End Sub
+
+'Private Sub Кнопка1492_Click()
+'Dim xlApp As Excel.Application
+'Dim xlBook As Excel.Workbook
+'Dim strTmplate As String
+'Dim rs As Object
+'
+'DoCmd.OpenQuery "inspection_Exel_report", acViewNormal, acEdit
+'
+'strTmplate = "C:\Users\S_LTD\Documents\insp_report.xltx"
+'Set xlApp = CreateObject("Excel.Application")
+'Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+'xlBook.Activate
+'
+'Set rs = CurrentDb.OpenRecordset("exel_report")
+'xlApp.Range("A2").CopyFromRecordset rs
+'
+'xlApp.Visible = True
+'
+'Set xlApp = Nothing
+'Set xlBook = Nothing
+'
+'
+'End Sub
+
+'============================================================================================
+' ======================================================= Раздел сохранения записи в таблицу ===
+'============================================================================================
+
+
+Private Sub Кнопка450_Click() ' сохранение записи в базе
+Dim rst As Recordset
+Dim one As String
+Dim Autor As Long
+Dim data_insp As Date
+Dim id_insp As String
+Dim location As String
+Dim place As Long
+Dim flora As String
+Dim farma_inv As String
+Dim farma_count As String
+Dim description As String
+Dim reason_tip As String
+Dim reason_short As String
+Dim reason As String
+Dim farma As String
+Dim reag1 As String
+Dim reag2 As String
+Dim reag3 As String
+Dim task As String
+Dim prev_insp As Long
+
+
+
+Autor = Me.Autor.Column(0)
+
+data_insp = Format(data_fild.Value, "dd/mm/yyyy")
+' переформатируем дату, чтобы получить код для записи осмотра
+id_insp = Replace(Format(Me.data_fild.Value, "yyyy/mm/dd"), ".", "")
+one = IIf(Len(Me.num_fild.Value) = 1, "0" & Me.num_fild.Value, Me.num_fild.Value)
+id_insp = id_insp & one
+
+     location = Me.location_combo.Column(0)
+place = Me.place_list.Column(0)
+flora = Me.Flora_combo.Column(0)
+
+
+If Me.inv_fild.Value <> "" Then
+    farma_inv = Me.inv_fild.Value
+    farma_inv = UCase(Left(farma_inv, 1)) & Right(farma_inv, Len(farma_inv) - 1)
+End If
+
+
+farma_count = IIf(Me.count_fild.Value <> "", Me.count_fild.Value, "")
+description = Me.description_fild.Value
+description = UCase(Left(description, 1)) & Right(description, Len(description) - 1)
+reason_tip = Me.reason_type.Value
+reason_short = IIf(Me.reason_combo.Column(0) <> "", Me.reason_combo.Column(0), "")
+reason = Me.reason_fild.Value
+reason = UCase(Left(reason, 1)) & Right(reason, Len(reason) - 1)
+If Me.farma_fild.Value <> "" Then
+farma = Me.farma_fild.Value
+farma = UCase(Left(farma, 1)) & Right(farma, Len(farma) - 1)
+Else
+farma = ""
+End If
+reag1 = IIf(Me.farma_combo1.Value <> "", Me.farma_combo1.Value, "")
+reag2 = IIf(Me.farma_combo2.Value <> "", Me.farma_combo2.Value, "")
+reag3 = IIf(Me.farma_combo3.Value <> "", Me.farma_combo3.Value, "")
+task = IIf(Me.task_combo.Column(1) <> "", Me.task_combo.Column(1), "")
+
+prev_insp = IIf(Me.prev_insp.Value <> "", Me.prev_insp.Value, 0)
+
+
+
+
+' открываем рекордсет на таблицу осмотров
+Set rst = CurrentDb.OpenRecordset("select * from inspection")
+
+With rst ' записываем данные всех полей
+  .AddNew
+    ![Autor] = Autor
+    ![ID] = id_insp
+    ![data] = data_insp
+    
+    ![location] = location
+    ![place] = place
+    
+    ![flora] = flora
+    ![inv] = farma_inv
+    ![count] = farma_count
+    
+    ![description] = description
+    
+    ![reason_short] = reason_short
+    ![reason_tip] = reason_tip
+    ![reason] = reason
+    
+    ![farma] = farma
+    ![reag1] = reag1
+    ![reag2] = reag2
+    ![reag3] = reag3
+    ![task] = task
+    ![prev_insp] = prev_insp
+    
+  .Update
+End With
+
+'' проядковый номер увеличиваем на единицу
+Me.num_fild.Value = Me.num_fild.Value + 1
+
+'' закрываем рекордсет
+Set rst = Nothing
+
+Me.f_inspect.Requery
+
+' вызываем подпрограмму для очистки формы
+New_rec
+End Sub
+
+
+
+Private Sub Кнопка511_Click()
+Me.farma_fild.Value = ""
+'Me.farma_short_fild.Value = ""
+End Sub
+
+
+
+Private Sub Кнопка512_Click()
+Me.reason_fild.Value = ""
+Me.reason_type.Value = ""
+Me.reason_short.Value = ""
+Me.reason_combo.Value = ""
+
+
+Me.reason_ad.Value = False
+Me.reason_post.Value = False
+End Sub
+
+Private Sub Кнопка535_Click()
+task_fild.Value = ""
+End Sub
+
+Private Sub Кнопка641_Click()
+Me.farma_fild.Value = "Проведение обработки не целесообразно."
+End Sub
+
+Private Sub Кнопка642_Click()
+Me.farma_fild.Value = ""
+End Sub
+
+
+
+
+================================================================================
+MODULE: Form_#Inspection ADD1
+================================================================================
+Attribute VB_Name = "Form_#Inspection ADD1"
+Attribute VB_Base = "0{A4F70F48-1C91-4C5B-884B-E91B8D36A579}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+Public num As Long
+
+Private Sub New_rec()
+Me.prev_insp.Value = ""
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = ""
+Me.farma_combo1.Visible = False
+Me.farma_txt1.Visible = False
+Me.farma_ad1.Visible = False
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+Me.farma_txt2.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_fild.Value = ""
+Me.task_fild.Value = ""
+Me.task_combo.Value = ""
+Me.location_combo.Value = ""
+Me.place_list.RowSource = ""
+Me.place_fild.Value = ""
+Me.place_ID.Value = ""
+Me.Flora_combo.Value = ""
+Me.inv_fild.Value = ""
+Me.count_fild.Value = ""
+Me.description_fild.Value = ""
+Me.reason_type.Value = ""
+Me.reason_combo.Value = ""
+Me.reason_fild.Value = ""
+Me.reason_post.Value = 0
+Me.reason_ad.Value = 0
+
+
+reason_type1_Click
+End Sub
+
+'============================================================================================
+'============================================================== Раздел выбора препарата  ====
+'============================================================================================
+Private Sub farma_metod1_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 1, -1, 0)
+Next
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = True
+Me.farma_ad1.Value = False
+Me.farma_ad2.Visible = False
+Me.farma_ad2.Value = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod2_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 2, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = True
+Me.farma_ad1.Value = False
+Me.farma_ad2.Visible = False
+Me.farma_ad2.Value = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod3_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 3, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "По листу"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Caption = "Под корень"
+Me.farma_txt2.Visible = True
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo2.Visible = True
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod4_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 4, -1, 0)
+Next
+
+Me.farma_txt1.Caption = "По листу"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Caption = "Под корень"
+Me.farma_txt2.Visible = True
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; "
+Me.farma_combo2.Visible = True
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod5_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 5, -1, 0)
+Next
+Me.farma_txt1.Caption = "Препарат"
+Me.farma_txt1.Visible = True
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & """гранулированное""" & ") or ((farma.use)=" & """водорастворимое""" & ") or ((farma.use)=" & """жидкое""" & ")) order by farma.farma_name;"
+Me.farma_combo1.Visible = True
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+End Sub
+Private Sub farma_metod6_Click()
+For x = 1 To 6
+    Me("farma_metod" & x).Value = IIf(x = 6, -1, 0)
+Next
+Me.farma_txt1.Visible = False
+Me.farma_txt2.Visible = False
+Me.farma_txt3.Visible = False
+
+Me.farma_ad1.Visible = False
+Me.farma_ad2.Visible = False
+
+Me.farma_combo1.Value = ""
+Me.farma_combo1.RowSource = ""
+Me.farma_combo1.Visible = False
+
+Me.farma_combo2.Value = ""
+Me.farma_combo2.RowSource = ""
+Me.farma_combo2.Visible = False
+
+Me.farma_combo3.Value = ""
+Me.farma_combo3.RowSource = ""
+Me.farma_combo3.Visible = False
+
+Me.farma_fild.Value = "Проведение обработки не целесообразно."
+
+End Sub
+
+
+Private Sub farma_ad1_Click()
+Dim one As String
+
+If Me.farma_ad1.Value = -1 Then
+    Me.farma_txt2.Caption = "Препарат"
+    Me.farma_txt2.Visible = True
+
+    Me.farma_ad2.Value = False
+    Me.farma_ad2.Visible = True
+    
+    one = IIf(Me.farma_metod1.Value = -1, """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ", """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ")
+    
+    Me.farma_combo2.Value = ""
+    Me.farma_combo2.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & one
+    Me.farma_combo2.Visible = True
+Else
+    Me.farma_txt2.Visible = False
+    Me.farma_txt3.Visible = False
+    Me.farma_ad2.Visible = False
+    Me.farma_combo2.Value = ""
+    Me.farma_combo2.RowSource = ""
+    Me.farma_combo2.Visible = False
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = ""
+    Me.farma_combo3.Visible = False
+End If
+
+End Sub
+
+Private Sub farma_ad2_Click()
+Dim one As String
+
+If Me.farma_ad2.Value = -1 Then
+    Me.farma_txt3.Caption = "Препарат"
+    Me.farma_txt3.Visible = True
+    one = IIf(Me.farma_metod1.Value = -1, """по листу""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ", """под корень""" & ") or ((farma.use)=" & """универсальное""" & ")) order by farma.farma_name; ")
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = "SELECT farma.farma_name, farma.n_p, farma.pref, farma.use FROM farma WHERE (((farma.use)=" & one
+    Me.farma_combo3.Visible = True
+Else
+    Me.farma_txt3.Visible = False
+    Me.farma_combo3.Value = ""
+    Me.farma_combo3.RowSource = ""
+    Me.farma_combo3.Visible = False
+
+End If
+End Sub
+
+Private Sub farma_combo1_AfterUpdate()
+Dim one As String
+
+If Me.farma_metod1 Then
+    Me.farma_fild.Value = "Обработать по листу препаратом: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+    ElseIf Me.farma_metod2 Then
+        Me.farma_fild.Value = "Пролить под корень препаратом: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+        ElseIf Me.farma_metod3 Then
+            Me.farma_fild.Value = "Провести комплексную обработку. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+            ElseIf Me.farma_metod4 Then
+                Me.farma_fild.Value = "Назначить курс. Троекратно, с интервалом в 7-10 дней. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                ElseIf Me.farma_metod5 Then
+                    If Me.farma_combo1.Column(3) = "гранулированное" Then
+                        Me.farma_fild.Value = "Внести препарат: " & Me.farma_combo1.Column(0) & " согласно инструкции с заделкой в почву."
+                            Else
+                                Me.farma_fild.Value = "Внести препарат: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды."
+                    End If
+End If
+End Sub
+Private Sub farma_combo2_AfterUpdate()
+If Me.farma_metod1 Then
+    Me.farma_fild.Value = "Обработать по листу смесью препаратов: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. + " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+        ElseIf Me.farma_metod2 Then
+            Me.farma_fild.Value = "Пролить под корень смесью препаратов: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. + " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+                ElseIf Me.farma_metod3 Then
+                    Me.farma_fild.Value = "Провести комплексную обработку. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                    Me.farma_fild.Value = Me.farma_fild.Value & "Под корень: " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+                        ElseIf Me.farma_metod4 Then
+                            Me.farma_fild.Value = "Назначить курс. Троекратно, с интервалом в 7-10 дней. По листу: " & Me.farma_combo1.Column(0) & " с н.п. " & Me.farma_combo1.Column(1) & Me.farma_combo1.Column(2) & " на 10 литров воды. "
+                            Me.farma_fild.Value = Me.farma_fild.Value & "Под корень: " & Me.farma_combo2.Column(0) & " с н.п. " & Me.farma_combo2.Column(1) & Me.farma_combo2.Column(2) & " на 10 литров воды."
+End If
+End Sub
+Private Sub farma_combo3_AfterUpdate()
+    Me.farma_fild.Value = Me.farma_fild.Value & " + " & Me.farma_combo3.Column(0) & " с н.п. " & Me.farma_combo3.Column(1) & Me.farma_combo3.Column(2) & " на 10 литров воды"
+End Sub
+
+
+
+'============================================================================================================
+''====================== После выбора растения включается поиск похожего случая в актах осмотра.
+'============================================================================================================
+Private Sub flora_combo_AfterUpdate() ' После выбора куртины и растения включается поиск похожего случая в актах осмотра.
+Dim rst As Recordset
+Dim one As String
+Dim x As Long
+
+' удаляем старое значение
+For x = 0 To Me.link_list.ListCount - 1
+    Me.link_list.RemoveItem (0)
+Next x
+
+one = "SELECT inspection.data, place.place, inspection.inv, inspection.Count, inspection.description, inspection.id, inspection.reason FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.location)=""" & Me.location_combo.Column(0) & """) AND ((inspection.flora)=""" & Me.Flora_combo.Value & """)) ORDER BY inspection.data;"
+Set rst = CurrentDb.OpenRecordset(one)
+
+' Если нет записей (указатель одновременно на начале и конце файла), то игнорировать
+If Not (rst.BOF And rst.EOF) Then
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    rst.MoveFirst
+    
+    For x = 1 To rst.RecordCount
+        ' формируем строчку в список
+        one = rst![data] & ";" & rst![place] & ";" & rst![inv] & ";" & rst![count] & ";" & rst![description] & ";" & rst![ID] & ";" & rst![reason]
+        Me.link_list.AddItem (one)
+         rst.MoveNext
+    Next x
+End If
+
+rst.Close
+Set rst = Nothing
+
+End Sub
+Private Sub link_list_Click()
+Me.link_inv = Me.link_list.Column(2)
+Me.link_count = Me.link_list.Column(3)
+Me.link_des = Me.link_list.Column(4)
+Me.link_id = Me.link_list.Column(5)
+Me.link_reason = Me.link_list.Column(6)
+End Sub
+Private Sub Кнопка1574_Click()
+Me.prev_insp.Value = Me.link_id.Value
+End Sub
+'===================================
+
+
+
+
+
+
+'==============================================================
+'======================Новый раздел выбора агроприёмов.
+'==============================================================
+Private Sub task_combo_AfterUpdate()
+
+If Me.task_add.Value = -1 Then
+    Me.task_fild.Value = IIf(Me.task_fild.Value <> "", Me.task_fild.Value & " + " & Me.task_combo.Column(1), Me.task_combo.Column(1))
+Else
+    Me.task_fild.Value = Me.task_combo.Column(1)
+End If
+
+End Sub
+'==============================================================
+'==============================================================
+
+
+'===============================================================
+'' ===================== новый раздел выбора причины
+'===============================================================
+
+Private Sub reason_type1_Click()
+Me.reason_type1.Value = 1
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 0
+Me.reason_combo.RowSource = "SELECT pest.pest, pest.pest_lat FROM pest;"
+Me.reason_combo.ListItemsEditForm = "f_pest"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type2_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 1
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 0
+
+Me.reason_combo.RowSource = "SELECT sickness.sickness, sickness.sickness_lat FROM sickness;"
+Me.reason_combo.ListItemsEditForm = "f_sickness"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type3_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 1
+Me.reason_type4.Value = 0
+
+Me.reason_combo.RowSource = "SELECT physiology.physiology, physiology.physiology_des FROM physiology;"
+Me.reason_combo.ListItemsEditForm = "f_physiology"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+Private Sub reason_type4_Click()
+Me.reason_type1.Value = 0
+Me.reason_type2.Value = 0
+Me.reason_type3.Value = 0
+Me.reason_type4.Value = 1
+
+Me.reason_combo.RowSource = "SELECT other.other, other.other_des FROM other;"
+Me.reason_combo.ListItemsEditForm = "f_other"
+
+Me.reason_fild.Value = IIf(Me.reason_ad.Value = -1, Me.reason_fild.Value, "")
+Me.reason_type.Value = IIf(Me.reason_ad.Value = -1, Me.reason_type.Value, "")
+Me.reason_combo.Value = ""
+Me.reason_combo.Requery
+End Sub
+
+Private Sub reason_combo_AfterUpdate()
+Dim reason_txt As String
+ 
+If Me.reason_type1 Then
+    reason_txt = IIf(Me.reason_post, "Последствия повреждения вредителем: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1), "Вредитель: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1))
+    Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+    Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Вредители", "Вредители")
+    Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+        ElseIf Me.reason_type2 Then
+            reason_txt = IIf(Me.reason_post, "Последствия перенесённого заболевания: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1), "Заболевание: " & Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1))
+            Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+            Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Заболевания", "Заболевания")
+            Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+    
+            ElseIf Me.reason_type3 Then
+                reason_txt = Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1)
+                Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+                Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Физиология", "Физиология")
+                Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+                
+                ElseIf Me.reason_type4 Then
+                    reason_txt = Me.reason_combo.Column(0) & " " & Me.reason_combo.Column(1)
+                    Me.reason_fild.Value = IIf(Me.reason_ad And Me.reason_fild.Value <> "", Me.reason_fild.Value & " + " & reason_txt, reason_txt)
+                    Me.reason_type.Value = IIf(Me.reason_ad And Me.reason_type.Value <> "", Me.reason_type.Value & " + Другое", "Другое")
+                    Me.reason_short.Value = IIf(Me.reason_ad And Me.reason_short.Value <> "", Me.reason_short.Value & " + " & Me.reason_combo.Column(0), Me.reason_combo.Column(0))
+
+End If
+End Sub
+'==============================================================
+'==============================================================
+
+
+
+
+
+
+
+'============================================================================================
+' =================================================== Инициация формы  ======================
+'============================================================================================
+Private Sub Form_Load()
+
+Me.location_combo.Value = ""
+Me.place_list.RowSource = ""
+Me.place_fild.Value = ""
+
+Me.reason_post.Value = False
+Me.reason_ad.Value = False
+Me.reason_fild.Value = ""
+Me.reason_combo.RowSource = "SELECT pest.pest, pest.pest_lat FROM pest;"
+Me.reason_combo.ListItemsEditForm = "f_pest"
+
+farma_metod1_Click
+reason_type1_Click
+
+End Sub
+
+
+
+
+
+Private Sub data_fild_AfterUpdate() ' после выбора даты смотрим количество записей на данное число. выставляем счётчик в нужное значение
+Dim rst As Recordset
+Dim one As String
+Dim two As String
+Dim tri As String
+
+'tri = Replace(data_fild.Value, ".", "/")
+
+one = Format(data_fild.Value, "mm/dd/yyyy")
+two = Replace(one, ".", "/")
+tri = "SELECT * FROM inspection WHERE (((inspection.data)=#" & two & "#));"
+
+Set rst = CurrentDb.OpenRecordset(tri)
+' Если нет записей (указатель одновременно на начале и конце файла), то игнорировать
+If Not (rst.BOF And rst.EOF) Then
+    two = rst.RecordCount
+    rst.MoveLast ' переместить указатель на последюю запись для защита от глюка подсчёта количество записей
+    two = rst.RecordCount
+End If
+
+
+Me.num_fild.Value = rst.RecordCount + 1 ' В поле номер записываем следующий порядковый номер
+ 
+Set rst = Nothing
+
+Me.f_inspect.Requery
+
+End Sub
+
+
+
+
+
+'============================================================================================
+' ======================================================= Раздел куртины и объекта ==========
+'============================================================================================
+
+Private Sub location_combo_AfterUpdate()
+' после выбора объекта выставляем значение источника строк для списка куртин
+Me.place_list.RowSource = "SELECT place.ID, place.place, place.plan FROM place WHERE (((place.parent)=""" & Me.location_combo.Text & """" & "));"
+End Sub
+Private Sub place_list_Click()
+' переносим данные из списка в поле куртины
+Me.place_fild.Value = Me.place_list.Column(1)
+Me.place_ID.Value = Me.place_list.Column(0)
+
+' Указываем название картинки для отображения (если есть картинка)
+'If Me.place_list.Column(2) <> "" Then
+'    Me.img.Picture = CurrentProject.Path & "\plan\" & Me.place_list.Column(2)
+'Else
+'    Me.img.Picture = ""
+'End If
+
+
+
+End Sub
+
+
+
+Private Sub Кнопка492_Click()
+Dim xlApp As Excel.Application
+Dim xlBook As Excel.Workbook
+Dim strTmplate As String
+Dim rs As Recordset
+Dim one As String
+Dim fnt As String, txt As String
+ 
+
+strTmplate = "Z:\BD_SPS\Template\insp_report.xltx"
+Set xlApp = CreateObject("Excel.Application")
+Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+xlBook.Activate
+
+
+one = "SELECT inspection.id, inspection.location, place.place, inspection.flora, inspection.inv, inspection.count, inspection.description, inspection.reason_tip, inspection.reason, inspection.farma, inspection.task FROM place INNER JOIN inspection ON place.id = inspection.place WHERE (((inspection.done) = False)) ORDER BY inspection.location;"
+Set rs = CurrentDb.OpenRecordset(one)
+
+
+xlApp.Range("A2").CopyFromRecordset rs
+
+
+With xlApp.ActiveSheet.PageSetup
+    '.CenterHeader = "Акт обследования №00 от " & Now()
+    fnt = """Calibri"""
+    txt = "Акт обследования №00 от " & Now()
+    .CenterHeader = "&" & fnt & "&20&B" & txt
+End With
+
+
+xlApp.Visible = True
+
+rs.Close
+Set rs = Nothing
+Set xlApp = Nothing
+Set xlBook = Nothing
+End Sub
+
+'Private Sub Кнопка1492_Click()
+'Dim xlApp As Excel.Application
+'Dim xlBook As Excel.Workbook
+'Dim strTmplate As String
+'Dim rs As Object
+'
+'DoCmd.OpenQuery "inspection_Exel_report", acViewNormal, acEdit
+'
+'strTmplate = "C:\Users\S_LTD\Documents\insp_report.xltx"
+'Set xlApp = CreateObject("Excel.Application")
+'Set xlBook = xlApp.Workbooks.Add(Template:=strTmplate)
+'xlBook.Activate
+'
+'Set rs = CurrentDb.OpenRecordset("exel_report")
+'xlApp.Range("A2").CopyFromRecordset rs
+'
+'xlApp.Visible = True
+'
+'Set xlApp = Nothing
+'Set xlBook = Nothing
+'
+'
+'End Sub
+
+'============================================================================================
+' ======================================================= Раздел сохранения записи в таблицу ===
+'============================================================================================
+
+
+Private Sub Кнопка450_Click() ' сохранение записи в базе
+Dim rst As Recordset
+Dim one As String
+Dim Autor As Long
+Dim data_insp As Date
+Dim id_insp As String
+Dim location As String
+Dim place As Long
+Dim flora As String
+Dim farma_inv As String
+Dim farma_count As String
+Dim description As String
+Dim reason_tip As String
+Dim reason_short As String
+Dim reason As String
+Dim farma As String
+Dim reag1 As String
+Dim reag2 As String
+Dim reag3 As String
+Dim task As String
+Dim prev_insp As Long
+
+
+
+Autor = Me.Autor.Column(0)
+
+data_insp = Format(data_fild.Value, "dd/mm/yyyy")
+' переформатируем дату, чтобы получить код для записи осмотра
+id_insp = Replace(Format(Me.data_fild.Value, "yyyy/mm/dd"), ".", "")
+one = IIf(Len(Me.num_fild.Value) = 1, "0" & Me.num_fild.Value, Me.num_fild.Value)
+id_insp = id_insp & one
+
+location = Me.location_combo.Column(0)
+place = Me.place_list.Column(0)
+flora = Me.Flora_combo.Column(0)
+
+
+If Me.inv_fild.Value <> "" Then
+    farma_inv = Me.inv_fild.Value
+    farma_inv = UCase(Left(farma_inv, 1)) & Right(farma_inv, Len(farma_inv) - 1)
+End If
+
+
+farma_count = IIf(Me.count_fild.Value <> "", Me.count_fild.Value, "")
+description = Me.description_fild.Value
+description = UCase(Left(description, 1)) & Right(description, Len(description) - 1)
+reason_tip = Me.reason_type.Value
+reason_short = IIf(Me.reason_combo.Column(0) <> "", Me.reason_combo.Column(0), "")
+reason = Me.reason_fild.Value
+reason = UCase(Left(reason, 1)) & Right(reason, Len(reason) - 1)
+If Me.farma_fild.Value <> "" Then
+farma = Me.farma_fild.Value
+farma = UCase(Left(farma, 1)) & Right(farma, Len(farma) - 1)
+Else
+farma = ""
+End If
+reag1 = IIf(Me.farma_combo1.Value <> "", Me.farma_combo1.Value, "")
+reag2 = IIf(Me.farma_combo2.Value <> "", Me.farma_combo2.Value, "")
+reag3 = IIf(Me.farma_combo3.Value <> "", Me.farma_combo3.Value, "")
+task = IIf(Me.task_combo.Column(1) <> "", Me.task_combo.Column(1), "")
+
+prev_insp = IIf(Me.prev_insp.Value <> "", Me.prev_insp.Value, 0)
+
+
+
+
+' открываем рекордсет на таблицу осмотров
+Set rst = CurrentDb.OpenRecordset("select * from inspection")
+
+With rst ' записываем данные всех полей
+  .AddNew
+    ![Autor] = Autor
+    ![ID] = id_insp
+    ![data] = data_insp
+    
+    ![location] = location
+    ![place] = place
+    
+    ![flora] = flora
+    ![inv] = farma_inv
+    ![count] = farma_count
+    
+    ![description] = description
+    
+    ![reason_short] = reason_short
+    ![reason_tip] = reason_tip
+    ![reason] = reason
+    
+    ![farma] = farma
+    ![reag1] = reag1
+    ![reag2] = reag2
+    ![reag3] = reag3
+    ![task] = task
+    ![prev_insp] = prev_insp
+    
+  .Update
+End With
+
+'' проядковый номер увеличиваем на единицу
+Me.num_fild.Value = Me.num_fild.Value + 1
+
+'' закрываем рекордсет
+Set rst = Nothing
+
+Me.f_inspect.Requery
+
+' вызываем подпрограмму для очистки формы
+New_rec
+End Sub
+
+
+
+Private Sub Кнопка511_Click()
+Me.farma_fild.Value = ""
+'Me.farma_short_fild.Value = ""
+End Sub
+
+
+
+Private Sub Кнопка512_Click()
+Me.reason_fild.Value = ""
+Me.reason_type.Value = ""
+Me.reason_short.Value = ""
+Me.reason_combo.Value = ""
+
+
+Me.reason_ad.Value = False
+Me.reason_post.Value = False
+End Sub
+
+Private Sub Кнопка535_Click()
+task_fild.Value = ""
+End Sub
+
+Private Sub Кнопка641_Click()
+Me.farma_fild.Value = "Проведение обработки не целесообразно."
+End Sub
+
+Private Sub Кнопка642_Click()
+Me.farma_fild.Value = ""
+End Sub
+
+
+
+
+================================================================================
+MODULE: Form_#protection
+================================================================================
+Attribute VB_Name = "Form_#protection"
+Attribute VB_Base = "0{F141C65F-B249-41EC-9E70-34BA29B8C39D}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Compare Database
+
+Private Sub add_frm_Click()
+Dim calk_prep As Byte
+
+calk_prep = IIf(IsNull(Me.cmb_farma1.Value), 0, 1) + IIf(IsNull(Me.cmb_farma2.Value), 0, 1) + IIf(IsNull(Me.cmb_farma3.Value), 0, 1)
+
+If calk_prep = 1 Then
+        Me.prot_farma.Value = Me.prot_farma.Value & IIf(Me.prot_farma.Value <> "", ";", "") & Me.cmb_farma1.Value
+        ElseIf calk_prep = 2 Then
+            Me.prot_farma.Value = Me.prot_farma.Value & IIf(Me.prot_farma.Value <> "", ";", "") & Me.cmb_farma1.Value & "+" & Me.cmb_farma2.Value
+                Else
+                    Me.prot_farma.Value = Me.prot_farma.Value & IIf(Me.prot_farma.Value <> "", ";", "") & Me.cmb_farma1.Value & "+" & Me.cmb_farma2.Value & "+" & Me.cmb_farma3.Value
+End If
+
+
+Me.prot_farma.Requery
+
+'Me.Requery
+
+Me.cmb_farma1.Value = Null
+Me.cmb_farma2.Value = Null
+Me.cmb_farma2.Visible = False
+Me.cmb_farma3.Value = Null
+Me.cmb_farma3.Visible = False
+End Sub
+
+Private Sub Form_Current()
+        Me.cmb_farma2.Visible = False
+        Me.cmb_farma2.Value = Null
+        Me.cmb_farma3.Visible = False
+        Me.cmb_farma3.Value = Null
+End Sub
+
+
+
+Private Sub cmb_farma1_AfterUpdate()
+        Me.cmb_farma2.Visible = True
+        Me.cmb_farma2.Value = Null
+End Sub
+Private Sub cmb_farma2_AfterUpdate()
+        Me.cmb_farma3.Visible = True
+        Me.cmb_farma3.Value = Null
+End Sub
+
+
+
+Private Sub data_day_AfterUpdate()
+Me.prot_data.Value = DatePart("ww", Me.data_day.Value)
+End Sub
+
+
+
+Private Sub Кнопка42_Click()
+Me.prot_farma.Value = ""
+Me.Requery
+End Sub
