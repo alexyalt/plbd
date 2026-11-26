@@ -1,0 +1,10 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Журнал изменений</h1>
+<p class="muted">Записываются изменения, сделанные через интерфейс. Импорт из Access в журнал не попадает.</p>
+{% include "core/_pager.html" %}
+<table><tr><th>Когда</th><th>Действие</th><th>Сущность</th><th>Запись</th></tr>
+{% for a in page %}<tr><td style="white-space:nowrap">{{ a.created|date:"d.m.Y H:i" }}</td><td>{{ a.action }}</td><td>{{ a.model }}</td><td>{{ a.text }}</td></tr>{% endfor %}
+</table>
+{% include "core/_pager.html" %}
+{% endblock %}

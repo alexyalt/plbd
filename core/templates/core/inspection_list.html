@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Осмотры</h1>
+<form class="filters" method="get">
+  <div><label>Поиск</label><input name="q" value="{{ g.q }}"></div>
+  <div><label>С даты</label><input type="date" name="date_from" value="{{ g.date_from }}"></div>
+  <div><label>По дату</label><input type="date" name="date_to" value="{{ g.date_to }}"></div>
+  <div><label>Объект</label><select name="location"><option value="">все</option>{% for l in locations %}<option value="{{ l.pk }}" {% if g.location == l.pk|stringformat:"s" %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  <div><label>Растение</label><select name="plant"><option value="">все</option>{% for p in plants %}<option value="{{ p.pk }}" {% if g.plant == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+  <div><label>Статус</label><select name="status">
+    <option value="">все</option><option value="open" {% if g.status == "open" %}selected{% endif %}>не выполнено</option>
+    <option value="work" {% if g.status == "work" %}selected{% endif %}>в работе</option>
+    <option value="done" {% if g.status == "done" %}selected{% endif %}>выполнено</option></select></div>
+  <button>Показать</button>
+  <a class="btn" href="{% url 'inspection_new' %}">+ Новый осмотр</a>
+</form>
+{% include "core/_pager.html" %}
+<table>
+<tr><th>Дата</th><th>Объект / куртина</th><th>Растение</th><th>Кол-во</th><th>Причина</th><th>Меры</th><th>Статус</th></tr>
+{% for o in page %}<tr>
+ <td style="white-space:nowrap"><a href="{% url 'inspection_detail' o.pk %}">{{ o.date|date:"d.m.Y"|default:"без даты" }}</a></td>
+ <td>{{ o.location|default:"" }}{% if o.place %}<br><span class="muted">{{ o.place.name }}</span>{% endif %}</td>
+ <td>{{ o.plant|default:"" }}</td><td>{{ o.count }}</td><td>{{ o.reason_short }}</td><td>{{ o.task|truncatechars:80 }}</td>
+ <td>{% if o.done %}<span class="pill ok">выполнено</span>{% elif o.in_work %}<span class="pill warn">в работе</span>{% endif %}</td>
+</tr>{% endfor %}
+</table>
+{% include "core/_pager.html" %}
+{% endblock %}

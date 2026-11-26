@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>График защиты</h1>
+<p>
+  <a class="btn light" href="?date={{ prev|date:'Y-m-d' }}">&larr; неделя назад</a>
+  <b>Неделя {{ week }}</b> (дата {{ base|date:"d.m.Y" }})
+  <a class="btn light" href="?date={{ next|date:'Y-m-d' }}">неделя вперёд &rarr;</a>
+  <a class="btn light" href="{% url 'protection' %}">сегодня</a>
+</p>
+{% for r, places in rules %}
+<div class="card" style="margin-bottom:10px">
+  <b style="font-size:17px">{{ r.plant|default:"(растение не найдено)" }}</b> · {{ r.phenology }}
+  <p><b>Против:</b> {{ r.targets }}<br><b>Препараты:</b> {{ r.preparations }}</p>
+  {% if places %}<details><summary>Куртины с этим растением</summary><ul>{% for p in places %}<li>{{ p.location|default:p.parent_raw }} / {{ p.name }}</li>{% endfor %}</ul></details>{% endif %}
+</div>
+{% empty %}<p class="muted">На эту неделю правил нет.</p>{% endfor %}
+<h2>Все правила</h2>
+<table><tr><th>Неделя</th><th>Растение</th><th>Фенофаза</th><th>Против</th><th>Препараты</th><th></th></tr>
+{% for r in all_rules %}<tr><td>{{ r.week }}</td><td>{{ r.plant|default:"" }}</td><td>{{ r.phenology }}</td><td>{{ r.targets|truncatechars:90 }}</td><td>{{ r.preparations }}</td>
+<td><a href="{% url 'catalog_edit' 'protectionrule' r.pk %}">править</a></td></tr>{% endfor %}
+</table>
+<p><a class="btn" href="{% url 'catalog_new' 'protectionrule' %}">+ Правило</a></p>
+{% endblock %}

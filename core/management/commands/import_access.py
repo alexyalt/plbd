@@ -209,15 +209,14 @@ class Importer:
                 person=self.resolve_person(A.col(r, "person")),
                 inspection=ins, inspection_legacy_id=ins_id, tank=A.to_int(A.col(r, "tank")),
                 treat_type=A.text(A.col(r, "Treat_type")), gasoline=A.to_bool(A.col(r, "gasolin")),
-                result=A.text(A.col(r, "result")), task_text=A.text(A.col(r, "task_insp")),
-                written_off=A.to_bool(A.col(r, "write-down")))
+                result=A.text(A.col(r, "result")), task_text=A.text(A.col(r, "task_insp")))
             treat_objs.append(t)
             lines = []
             for i in range(1, 5):
                 name = A.text(A.col(r, f"reag{i}"))
                 if name:
                     lines.append((name, A.to_decimal(A.col(r, f"reag_count{i}"))))
-            reag_src[lid] = lines
+            reag_src[lid] = (lines, A.to_bool(A.col(r, "write-down")))
             if A.text(A.col(r, "data")) and t.date is None:
                 self.note("Обработки с нечитаемой датой", f"№ {lid}")
         if orphan:
@@ -225,11 +224,11 @@ class Importer:
         Treatment.objects.bulk_create(treat_objs, batch_size=500)
         by_legacy = dict(Treatment.objects.values_list("legacy_id", "id"))
         reagents = []
-        for lid, lines in reag_src.items():
+        for lid, (lines, wd) in reag_src.items():
             for name, qty in lines:
                 prep = self.resolve(name, self.prep_idx, Preparation, "name",
                                     "Препараты, которых нет в справочнике (созданы как заглушки)")
-                reagents.append(TreatmentReagent(treatment_id=by_legacy[lid], preparation=prep, quantity=qty))
+                reagents.append(TreatmentReagent(treatment_id=by_legacy[lid], preparation=prep, quantity=qty, written_off=wd))
         TreatmentReagent.objects.bulk_create(reagents, batch_size=1000)
 
     def protection(self):

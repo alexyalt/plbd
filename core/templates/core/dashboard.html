@@ -1,0 +1,25 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Главная</h1>
+<div class="cards">{% for label, n in counts %}<div class="card">{{ label }}<b>{{ n }}</b></div>{% endfor %}</div>
+<p>
+  <a class="btn" href="{% url 'inspection_new' %}">+ Акт осмотра</a>
+  <a class="btn" href="{% url 'treatment_new' %}">+ Обработка</a>
+  <a class="btn light" href="{% url 'writeoff' %}">Списание ТМЦ</a>
+  <a class="btn light" href="{% url 'protection' %}">График защиты на эту неделю</a>
+</p>
+<h2>Последние осмотры</h2>
+<table><tr><th>Дата</th><th>Объект</th><th>Растение</th><th>Причина</th><th>Статус</th></tr>
+{% for o in recent_inspections %}<tr>
+ <td><a href="{% url 'inspection_detail' o.pk %}">{{ o.date|date:"d.m.Y" }}</a></td><td>{{ o.location|default:"" }}</td>
+ <td>{{ o.plant|default:"" }}</td><td>{{ o.reason_short }}</td>
+ <td>{% if o.done %}<span class="pill ok">выполнено</span>{% elif o.in_work %}<span class="pill warn">в работе</span>{% endif %}</td></tr>{% endfor %}
+</table>
+<h2>Последние обработки</h2>
+<table><tr><th>Дата</th><th>Объект</th><th>Растение</th><th>Садовник</th><th>Препараты</th></tr>
+{% for t in recent_treatments %}<tr>
+ <td><a href="{% url 'treatment_edit' t.pk %}">{{ t.date|date:"d.m.Y" }}</a></td><td>{{ t.location|default:"" }}</td>
+ <td>{{ t.plant|default:"" }}</td><td>{{ t.person|default:"" }}</td>
+ <td>{% for r in t.reagents.all %}{{ r.preparation }} ({{ r.quantity|default:"?" }}){% if not forloop.last %}; {% endif %}{% endfor %}</td></tr>{% endfor %}
+</table>
+{% endblock %}

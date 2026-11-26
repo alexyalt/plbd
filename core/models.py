@@ -202,7 +202,6 @@ class Treatment(models.Model):
     gasoline = models.BooleanField("Бензин (опрыскиватель)", default=False)
     result = models.CharField("Результат", max_length=500, blank=True)
     task_text = models.TextField("Задание", blank=True)
-    written_off = models.BooleanField("Списано", default=False)
 
     class Meta:
         ordering = ["-date", "-id"]
@@ -216,8 +215,9 @@ class Treatment(models.Model):
 class TreatmentReagent(models.Model):
     treatment = models.ForeignKey(Treatment, on_delete=models.CASCADE, related_name="reagents")
     preparation = models.ForeignKey(Preparation, verbose_name="Препарат", on_delete=models.PROTECT,
-                                    related_name="usages")
+                                    related_name="usages", limit_choices_to={"merged_into__isnull": True})
     quantity = models.DecimalField("Расход", max_digits=12, decimal_places=2, null=True, blank=True)
+    written_off = models.BooleanField("Списано", default=False)
 
     class Meta:
         verbose_name = "препарат обработки"
@@ -230,3 +230,16 @@ class TreatmentReagent(models.Model):
         if self.quantity is None:
             self.quantity = self.preparation.quantity_for_tank(self.treatment.tank)
         super().save(*args, **kwargs)
+
+
+class AuditLog(models.Model):
+    created = models.DateTimeField("Когда", auto_now_add=True)
+    action = models.CharField("Действие", max_length=30)
+    model = models.CharField("Сущность", max_length=60)
+    object_id = models.CharField("ID", max_length=30, blank=True)
+    text = models.CharField("Запись", max_length=500)
+
+    class Meta:
+        ordering = ["-created", "-id"]
+        verbose_name = "запись журнала"
+        verbose_name_plural = "журнал изменений"

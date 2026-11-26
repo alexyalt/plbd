@@ -1,0 +1,8 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Справочники</h1>
+<table style="max-width:520px">
+{% for slug, title, n in items %}<tr><td><a href="{% url 'catalog_list' slug %}">{{ title }}</a></td><td class="right">{{ n }}</td></tr>{% endfor %}
+</table>
+<p><a class="btn light" href="{% url 'duplicates' %}">Дубли препаратов</a></p>
+{% endblock %}

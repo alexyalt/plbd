@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Защита насаждений{% endblock %}</title>
+<style>
+  body{font:15px/1.45 system-ui,Segoe UI,Arial,sans-serif;margin:0;color:#1f2933;background:#f4f6f4}
+  nav{background:#2f5d3a;padding:0 16px;display:flex;flex-wrap:wrap}
+  nav a{color:#fff;text-decoration:none;padding:12px 14px;display:block}
+  nav a:hover,nav a.on{background:#244a2e}
+  main{max-width:1250px;margin:18px auto;padding:0 16px}
+  h1{font-size:22px;margin:0 0 14px}
+  table{border-collapse:collapse;width:100%;background:#fff}
+  th,td{border:1px solid #d5dbd5;padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#e8efe8}
+  tr.sub td{background:#fafcfa}
+  input,select,textarea{font:inherit;padding:5px 7px;border:1px solid #b9c3b9;border-radius:4px;max-width:100%}
+  textarea{width:min(640px,100%)}
+  button,.btn{font:inherit;background:#2f5d3a;color:#fff;border:0;border-radius:4px;padding:7px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+  .btn.light,button.light{background:#e8efe8;color:#1f2933;border:1px solid #b9c3b9}
+  .btn.danger,button.danger{background:#a33}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:end}
+  .filters label{display:block;font-size:12px;color:#52606d}
+  .msg{padding:9px 12px;border-radius:4px;margin-bottom:10px}
+  .msg.success{background:#dff3e0}.msg.error{background:#f8dcdc}
+  .cards{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+  .card{background:#fff;border:1px solid #d5dbd5;border-radius:6px;padding:10px 16px;min-width:130px}
+  .card b{display:block;font-size:24px}
+  .pager{margin:12px 0}.pager a,.pager span{margin-right:10px}
+  form.stack>div{margin-bottom:10px}
+  form.stack label{display:block;font-weight:600;font-size:13px}
+  .errorlist{color:#a33;margin:2px 0;padding-left:16px}
+  .muted{color:#6b7782}.right{text-align:right}
+  .pill{background:#e8efe8;border-radius:10px;padding:1px 8px;font-size:12px}
+  .pill.warn{background:#fdecc8}.pill.ok{background:#dff3e0}
+</style>
+</head>
+<body>
+<nav>{% for url, label in menu %}<a href="{% url url %}">{{ label }}</a>{% endfor %}</nav>
+<main>
+{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

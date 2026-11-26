@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Обработки</h1>
+<form class="filters" method="get">
+  <div><label>Поиск</label><input name="q" value="{{ g.q }}"></div>
+  <div><label>С даты</label><input type="date" name="date_from" value="{{ g.date_from }}"></div>
+  <div><label>По дату</label><input type="date" name="date_to" value="{{ g.date_to }}"></div>
+  <div><label>Объект</label><select name="location"><option value="">все</option>{% for l in locations %}<option value="{{ l.pk }}" {% if g.location == l.pk|stringformat:"s" %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  <div><label>Растение</label><select name="plant"><option value="">все</option>{% for p in plants %}<option value="{{ p.pk }}" {% if g.plant == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+  <div><label>Садовник</label><select name="person"><option value="">все</option>{% for p in persons %}<option value="{{ p.pk }}" {% if g.person == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+  <div><label>Препарат</label><select name="preparation"><option value="">все</option>{% for p in preparations %}<option value="{{ p.pk }}" {% if g.preparation == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+  <div><label>Списание</label><select name="wo"><option value="">все</option><option value="no" {% if g.wo == "no" %}selected{% endif %}>не списано</option><option value="yes" {% if g.wo == "yes" %}selected{% endif %}>списано</option></select></div>
+  <button>Показать</button>
+  <a class="btn" href="{% url 'treatment_new' %}">+ Новая обработка</a>
+</form>
+{% include "core/_pager.html" %}
+<table>
+<tr><th>Дата</th><th>Объект</th><th>Растение</th><th>Садовник</th><th>Тип</th><th>Бак, л</th><th>Препараты (расход)</th><th>Результат</th><th></th></tr>
+{% for t in page %}<tr>
+ <td style="white-space:nowrap"><a href="{% url 'treatment_edit' t.pk %}">{{ t.date|date:"d.m.Y"|default:"без даты" }}</a></td>
+ <td>{{ t.location|default:"" }}</td><td>{{ t.plant|default:"" }}</td><td>{{ t.person|default:"" }}</td><td>{{ t.treat_type }}</td><td>{{ t.tank|default:"" }}</td>
+ <td>{% for r in t.reagents.all %}{{ r.preparation }}: {{ r.quantity|default:"?" }}{% if r.written_off %} <span class="pill ok">спис.</span>{% endif %}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
+ <td>{{ t.result|truncatechars:60 }}</td>
+ <td><form method="post" action="{% url 'treatment_delete' t.pk %}" onsubmit="return confirm('Удалить обработку?')">{% csrf_token %}<button class="danger" style="padding:2px 8px">удалить</button></form></td>
+</tr>{% endfor %}
+</table>
+{% include "core/_pager.html" %}
+{% endblock %}

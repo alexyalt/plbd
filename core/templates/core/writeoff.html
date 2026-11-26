@@ -1,0 +1,29 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Списание ТМЦ</h1>
+<form class="filters" method="get">
+  {% for f in form %}<div><label>{{ f.label }}</label>{{ f }}</div>{% endfor %}
+  <button>Показать</button>
+</form>
+{% if prep %}
+<p><b>{{ prep.name }}</b>
+  {% if prep.stock_code %} · код склада {{ prep.stock_code }}{% endif %}
+  {% if prep.stock_name %} · «{{ prep.stock_name }}»{% endif %}
+  · норма {{ prep.dose_per_10l|default:"?" }} {{ prep.unit }} на 10 л
+  {% if prep.stock_unit and prep.stock_unit != prep.unit %}<br><span class="pill warn">единица расхода ({{ prep.unit|default:"?" }}) отличается от складской ({{ prep.stock_unit }}), проверьте пересчёт</span>{% endif %}
+</p>
+<form method="post" action="{% url 'writeoff_confirm' %}">{% csrf_token %}
+<input type="hidden" name="qstr" value="{{ qstr }}"><input type="hidden" name="label" value="{{ prep.name }}">
+<table>
+<tr><th>Дата</th><th>Объект</th><th>Код объекта</th><th>Тип</th><th class="right">Расход</th></tr>
+{% for r in rows %}<tr><td>{{ r.treatment.date|date:"d.m.Y" }}</td><td>{{ r.treatment.location|default:"" }}</td>
+<td>{{ r.treatment.location.code|default:"" }}</td><td>{{ r.treatment.treat_type }}</td><td class="right">{{ r.quantity|default:"?" }}</td>
+<input type="hidden" name="ids" value="{{ r.pk }}"></tr>
+{% empty %}<tr><td colspan="5" class="muted">Нет несписанных обработок по условию</td></tr>{% endfor %}
+{% if rows %}<tr><th colspan="4" class="right">Итого</th><th class="right">{{ total }}</th></tr>{% endif %}
+</table>
+{% if rows %}<p><button onclick="return confirm('Пометить все показанные строки как списанные?')">Списать показанные ({{ rows|length }})</button>
+<a class="btn light" href="?{{ qstr }}&export=xlsx">Скачать справку (xlsx)</a></p>{% endif %}
+</form>
+{% endif %}
+{% endblock %}

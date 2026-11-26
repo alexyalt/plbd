@@ -1,0 +1,39 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="stack">{% csrf_token %}
+  {{ form.as_div }}
+  <h2>Препараты</h2>
+  <p class="muted">Расход можно не вводить: он рассчитается по формуле «норма на 10 л × объём бака / 10».</p>
+  {{ formset.management_form }}
+  {{ formset.non_form_errors }}
+  <table style="max-width:800px">
+    <tr><th>Препарат</th><th>Расход</th><th>Списано</th><th>Удалить</th></tr>
+    {% for f in formset %}<tr class="reagent-row">
+      <td>{{ f.id }}{{ f.preparation.errors }}{{ f.preparation }}</td>
+      <td>{{ f.quantity.errors }}{{ f.quantity }}</td>
+      <td>{{ f.written_off }}</td>
+      <td>{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+    </tr>{% endfor %}
+  </table>
+  <p><button>Сохранить</button> <a class="btn light" href="{% url 'treatment_list' %}">Отмена</a></p>
+</form>
+<script>
+const DOSES = {{ doses|safe }};
+const tank = document.getElementById('id_tank');
+function recalc(row) {
+  const sel = row.querySelector('select'), q = row.querySelector('input[type=number], input[name$="-quantity"]');
+  if (!sel || !q) return;
+  const dose = parseFloat(DOSES[sel.value]);
+  if (!isNaN(dose) && tank.value && (q.value === '' || q.dataset.auto === '1')) {
+    q.value = (parseFloat(tank.value) * dose / 10).toFixed(2); q.dataset.auto = '1';
+  }
+}
+document.querySelectorAll('.reagent-row').forEach(row => {
+  const q = row.querySelector('input[name$="-quantity"]');
+  if (q) q.addEventListener('input', () => { q.dataset.auto = '0'; });
+  row.querySelector('select').addEventListener('change', () => recalc(row));
+});
+tank.addEventListener('input', () => document.querySelectorAll('.reagent-row').forEach(recalc));
+</script>
+{% endblock %}

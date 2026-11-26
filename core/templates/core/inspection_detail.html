@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>{{ o }}</h1>
+<p>
+  <a class="btn" href="{% url 'treatment_new' %}?inspection={{ o.pk }}">+ Обработка по этому осмотру</a>
+  <a class="btn light" href="{% url 'inspection_edit' o.pk %}">Править</a>
+  <form method="post" action="{% url 'inspection_done' o.pk %}" style="display:inline">{% csrf_token %}<button class="light">{% if o.done %}Снять отметку «выполнено»{% else %}Отметить выполненным{% endif %}</button></form>
+  <form method="post" action="{% url 'inspection_delete' o.pk %}" style="display:inline" onsubmit="return confirm('Удалить осмотр?')">{% csrf_token %}<button class="danger">Удалить</button></form>
+</p>
+<table style="max-width:900px">
+<tr><th>Объект</th><td>{{ o.location|default:"" }}</td></tr>
+<tr><th>Куртина</th><td>{{ o.place.name|default:"" }}</td></tr>
+<tr><th>Растение</th><td>{{ o.plant|default:"" }} {% if o.count %}<span class="muted">(кол-во: {{ o.count }})</span>{% endif %}</td></tr>
+<tr><th>Инв. номер</th><td>{{ o.inv }}</td></tr>
+<tr><th>Описание</th><td>{{ o.description|linebreaksbr }}</td></tr>
+<tr><th>Причина</th><td>{{ o.reason_kind }}: {{ o.reason_short }}<br>{{ o.reason_text|linebreaksbr }}</td></tr>
+<tr><th>Назначено (препараты)</th><td>{{ o.prescription|linebreaksbr }}</td></tr>
+<tr><th>Меры</th><td>{{ o.task|linebreaksbr }}{% if o.task_date %}<br><span class="muted">срок {{ o.task_date|date:"d.m.Y" }}</span>{% endif %}</td></tr>
+<tr><th>Автор</th><td>{{ o.author|default:"" }}</td></tr>
+<tr><th>Статус</th><td>{% if o.done %}выполнено{% elif o.in_work %}в работе{% else %}открыт{% endif %}</td></tr>
+<tr><th>Предыдущий осмотр</th><td>{% if o.prev %}<a href="{% url 'inspection_detail' o.prev.pk %}">{{ o.prev }}</a>{% endif %}</td></tr>
+</table>
+<h2>Обработки по осмотру</h2>
+<table>
+<tr><th>Дата</th><th>Тип</th><th>Садовник</th><th>Препараты</th><th>Результат</th></tr>
+{% for t in treatments %}<tr><td><a href="{% url 'treatment_edit' t.pk %}">{{ t.date|date:"d.m.Y" }}</a></td><td>{{ t.treat_type }}</td><td>{{ t.person|default:"" }}</td>
+<td>{% for r in t.reagents.all %}{{ r.preparation }}: {{ r.quantity|default:"?" }}{% if not forloop.last %}; {% endif %}{% endfor %}</td><td>{{ t.result }}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">нет</td></tr>{% endfor %}
+</table>
+{% endblock %}

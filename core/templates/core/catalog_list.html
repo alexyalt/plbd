@@ -1,0 +1,20 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form class="filters" method="get">
+  <div><label>Поиск</label><input name="q" value="{{ q }}" placeholder="текст"></div>
+  {% if has_placeholder %}<div><label><input type="checkbox" name="placeholder" value="1" {% if only_placeholder %}checked{% endif %}> только созданные при импорте</label></div>{% endif %}
+  <button>Найти</button>
+  <a class="btn" href="{% url 'catalog_new' slug %}">+ Добавить</a>
+</form>
+{% include "core/_pager.html" %}
+<table>
+<tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}<th></th></tr>
+{% for pk, cells in rows %}<tr>
+  {% for c in cells %}<td>{{ c|truncatechars:120 }}</td>{% endfor %}
+  <td style="white-space:nowrap"><a href="{% url 'catalog_edit' slug pk %}">править</a>
+  <form method="post" action="{% url 'catalog_delete' slug pk %}" style="display:inline" onsubmit="return confirm('Удалить запись?')">{% csrf_token %}<button class="danger" style="padding:2px 8px">удалить</button></form></td>
+</tr>{% endfor %}
+</table>
+{% include "core/_pager.html" %}
+{% endblock %}

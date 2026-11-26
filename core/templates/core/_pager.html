@@ -1,0 +1,7 @@
+{% if page.paginator.num_pages > 1 %}
+<div class="pager">
+  {% if page.has_previous %}<a href="?{{ qstr }}&page={{ page.previous_page_number }}">&larr; назад</a>{% endif %}
+  <span>стр. {{ page.number }} из {{ page.paginator.num_pages }} (записей: {{ page.paginator.count }})</span>
+  {% if page.has_next %}<a href="?{{ qstr }}&page={{ page.next_page_number }}">вперёд &rarr;</a>{% endif %}
+</div>
+{% else %}<div class="pager muted">Записей: {{ page.paginator.count }}</div>{% endif %}

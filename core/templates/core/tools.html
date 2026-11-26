@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h1>Сервис</h1>
+<h2>Резервная копия</h2>
+<form method="post" action="{% url 'backup' %}">{% csrf_token %}<button>Сохранить копию БД</button></form>
+{% if backups %}<ul>{% for name, mb in backups %}<li>{{ name }} <span class="muted">{{ mb }} МБ</span></li>{% endfor %}</ul>{% endif %}
+<h2>Записи, созданные при импорте</h2>
+<p class="muted">Значения из старой базы, которых не было в справочниках. Проверьте и при необходимости исправьте или объедините.</p>
+<ul>{% for title, n, slug in placeholders %}{% if n %}<li><a href="{% url 'catalog_list' slug %}?placeholder=1">{{ title }}</a>: {{ n }}</li>{% endif %}{% endfor %}</ul>
+<h2>Прочее</h2>
+<ul>
+  <li><a href="{% url 'duplicates' %}">Дубли препаратов</a></li>
+  <li><a href="{% url 'audit' %}">Журнал изменений</a></li>
+  {% if has_report %}<li><a href="{% url 'migration_report' %}">Отчёт миграции</a></li>{% endif %}
+</ul>
+{% endblock %}
